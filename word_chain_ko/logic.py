@@ -1,10 +1,11 @@
 #끝말잇기 알고리즘(단어 검색, 두음법칙, 유효성 검사)
 import hgtk
 import random
-from word_chain_ko.utils import is_valid_korean_word, decompose_korean_letter
+from word_chain_ko.utils import is_valid_korean_word, fetch_nouns_from_api 
+#decompose_korean_letter
 
 history = []
-blacklist = ['즘', '틱', '늄', '슘', '퓸', '늬', '뺌', '섯', '숍', '튼', '름', '늠', '쁨']
+#blacklist = ['즘', '틱', '늄', '슘', '퓸', '늬', '뺌', '섯', '숍', '튼', '름', '늠', '쁨']
 
 
 def check_word_validity(word, history):
@@ -85,27 +86,25 @@ def apply_duum_law(full_letter):
 
 
 def generate_next_word(history):
+    """
+    사용자의 입력을 기반으로 컴퓨터의 다음 단어를 생성합니다.
+    두음법칙을 적용하여 API에서 단어를 검색하고 선택합니다.
+    """
     if not history:
         return None  # 사용자가 입력한 단어가 없을 경우
 
     last_word = history[-1]  # 사용자가 마지막으로 입력한 단어
     last_char = last_word[-1]  # 마지막 글자 추출
 
-    # 기본적으로 마지막 글자로 시작하는 단어 후보 찾기
-    candidates = [
-        word for word in word_list
-        if word.startswith(last_char) and word not in history
-    ]
+    # 기본적으로 API에서 마지막 글자로 시작하는 단어 후보 찾기
+    candidates = fetch_nouns_from_api(last_char)
     print(f"Candidates matching last char '{last_char}': {candidates}")
 
     # 두음법칙 적용된 음절로 후보 찾기 (필요한 경우)
     if not candidates:
         transformed_char = apply_duum_law(last_char)
         print(f"Transformed char after duum law: {transformed_char}")
-        candidates = [
-            word for word in word_list
-            if word.startswith(transformed_char) and word not in history
-        ]
+        candidates = fetch_nouns_from_api(transformed_char)
         print(f"Candidates after applying duum law: {candidates}")
 
     # 후보가 없다면 None 반환
@@ -117,3 +116,9 @@ def generate_next_word(history):
     chosen_word = random.choice(candidates)
     print(f"Chosen word: {chosen_word}")
     return chosen_word
+
+
+if __name__ == "__main__":
+    history = ["사과", "라면"]  # 입력된 단어 기록
+    next_word = generate_next_word(history)  # 다음 단어 생성
+    print(f"Next word: {next_word}")

@@ -121,7 +121,7 @@ document.getElementById('submit-word').addEventListener('click', async () => {
     document.getElementById('user-word').value = '';
 });
 
-// "엔터" 키로 제출 이벤트 트리거
+// "엔터" 키로 제출 이벤트 트리거 --> 엔터를 누르면 단어를 제출할 수 있게 하는 코드
 document.getElementById('user-word').addEventListener('keypress', (event) => {
     if (event.key === 'Enter') {
         event.preventDefault(); // 기본 동작(폼 제출) 방지
@@ -129,7 +129,7 @@ document.getElementById('user-word').addEventListener('keypress', (event) => {
     }
 });
 
-// 게임 종료 처리 함수
+// 게임 종료 처리 함수 --> 게임이 종료되면 입력필드를 비활성화
 function quitGame() {
     document.getElementById('result').textContent = '게임을 종료합니다.';
     document.getElementById('result').style.color = 'blue';
