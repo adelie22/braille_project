@@ -12,6 +12,7 @@ def fetch_nouns_from_api(starting_char, num_results=100):
         "sort": "popular",
         "pos": 1,
         "num": num_results,
+        "type3" : 'general'
     }
     try:
         response = requests.get(API_URL, params=params)
