@@ -1,5 +1,5 @@
 import requests
-from word_chain.config import API_KEY  # API 키를 config에서 가져오기
+from word_chain_ko.config import API_KEY  # API 키를 config에서 가져오기
 
 def is_valid_korean_word(word):
     """
@@ -65,4 +65,3 @@ test_words = ["사과", "바나나", "1234", "abc"]
 for word in test_words:
     result = is_valid_korean_word(word)
     print(f"Word: {word}, Valid: {result}")
-

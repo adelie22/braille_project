@@ -1,7 +1,7 @@
 #끝말잇기 알고리즘(단어 검색, 두음법칙, 유효성 검사)
 import hgtk
 import random
-from word_chain.utils import is_valid_korean_word, decompose_korean_letter
+from word_chain_ko.utils import is_valid_korean_word, decompose_korean_letter
 
 history = []
 blacklist = ['즘', '틱', '늄', '슘', '퓸', '늬', '뺌', '섯', '숍', '튼', '름', '늠', '쁨']
@@ -117,4 +117,3 @@ def generate_next_word(history):
     chosen_word = random.choice(candidates)
     print(f"Chosen word: {chosen_word}")
     return chosen_word
-

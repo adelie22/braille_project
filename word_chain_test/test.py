@@ -1,4 +1,4 @@
-from word_chain.utils import is_valid_korean_word, generate_next_word
+from word_chain_ko.utils import is_valid_korean_word, generate_next_word
 
 if __name__ == "__main__":
     test_words = ["사과", "바나나", "1234", "abc", "꽃"]

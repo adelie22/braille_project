@@ -1,7 +1,14 @@
 from flask import Flask, render_template, jsonify, request
 from routes import register_blueprints  # Ensure this function is defined in routes/__init__.py
 from db import get_db_connection  # Ensure this connects to the correct database
-from word_chain.api import word_chain_api  # Import the word_chain Blueprint
+from word_chain_ko.api import word_chain_api  # Import the word_chain Blueprint
+import sys
+import os
+
+# 프로젝트 경로가 PYTHONPATH에 포함되었는지 확인
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+if PROJECT_DIR not in sys.path:
+    sys.path.append(PROJECT_DIR)
 
 # 전역 변수 선언
 history = []  # 서버 전역 기록 초기화
