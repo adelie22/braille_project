@@ -284,3 +284,59 @@ function quitGameEn() {
     document.getElementById('result-en').style.color = 'blue';
     document.getElementById('user-word-en').disabled = true; // 입력 비활성화
 }
+
+
+
+// 한국어 끝말잇기 초기화 및 뒤로가기
+document.getElementById('back-to-menu-ko').addEventListener('click', async () => {
+    try {
+        // 서버에서 한국어 게임 초기화 요청
+        const response = await fetch('/word_chain/reset', { method: 'POST' }); // 한국어 초기화
+        if (!response.ok) {
+            throw new Error('Failed to reset the game on the server');
+        }
+        const data = await response.json();
+        console.log(data.message); // 서버 응답 확인
+
+        // 클라이언트 데이터 초기화
+        history = []; // 클라이언트의 게임 기록 초기화
+        invalidAttempts = 0; // 틀린 시도 초기화
+        document.getElementById('history').innerHTML = ''; // 화면 기록 초기화
+        document.getElementById('result').textContent = ''; // 결과 초기화
+        document.getElementById('user-word').value = ''; // 입력 필드 초기화
+
+        // 화면 전환
+        document.getElementById('word-chain-game').classList.add('hidden'); // 한국어 끝말잇기 숨기기
+        document.getElementById('language-selection').classList.remove('hidden'); // 언어 선택 화면 보이기
+    } catch (error) {
+        console.error('Error resetting the game:', error);
+        alert('게임 초기화 중 오류가 발생했습니다.');
+    }
+});
+
+// 영어 끝말잇기 초기화 및 뒤로가기
+document.getElementById('back-to-menu-en').addEventListener('click', async () => {
+    try {
+        // 서버에서 영어 게임 초기화 요청
+        const response = await fetch('/word_chain_en/reset', { method: 'POST' }); // 영어 초기화
+        if (!response.ok) {
+            throw new Error('Failed to reset the English game on the server');
+        }
+        const data = await response.json();
+        console.log(data.message); // 서버 응답 확인
+
+        // 클라이언트 데이터 초기화
+        history = []; // 클라이언트의 게임 기록 초기화
+        invalidAttempts = 0; // 틀린 시도 초기화
+        document.getElementById('history-en').innerHTML = ''; // 화면 기록 초기화
+        document.getElementById('result-en').textContent = ''; // 결과 초기화
+        document.getElementById('user-word-en').value = ''; // 입력 필드 초기화
+
+        // 화면 전환
+        document.getElementById('word-chain-game-en').classList.add('hidden'); // 영어 끝말잇기 숨기기
+        document.getElementById('language-selection').classList.remove('hidden'); // 언어 선택 화면 보이기
+    } catch (error) {
+        console.error('Error resetting the English game:', error);
+        alert('Error resetting the game.');
+    }
+});

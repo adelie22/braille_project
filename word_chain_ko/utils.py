@@ -5,7 +5,7 @@ API_URL = "https://opendict.korean.go.kr/api/search"
 
 import re
 
-def fetch_nouns_from_api(starting_char, num_results=20):
+def fetch_nouns_from_api(starting_char, num_results=50):
     """
     특정 초성으로 시작하는 명사를 API에서 가져옵니다.
     """
@@ -19,6 +19,8 @@ def fetch_nouns_from_api(starting_char, num_results=20):
         "type4" : "general",
         "pos": 1,
         "num": num_results,
+        "stirng" : 'start',
+        "start" : 1
     }
 
     try:
