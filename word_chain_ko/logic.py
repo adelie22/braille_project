@@ -8,41 +8,50 @@ history = []
 #blacklist = ['즘', '틱', '늄', '슘', '퓸', '늬', '뺌', '섯', '숍', '튼', '름', '늠', '쁨']
 def check_word_validity(word, history):
     """
-    사용자가 입력한 단어의 유효성을 검사합니다.
+    사용자가 입력한 단어의 유효성을 검사하고,
+    각 상황에 맞는 주의문구를 음성으로 출력합니다.
     """
     print(f"Validating word: {word}")
 
     # 단어 길이 검사
     if len(word) < 2:
-        print(f"Word '{word}' is too short.")
-        return False, "단어는 2글자 이상이어야 합니다."
+        error_message = "단어는 2글자 이상이어야 합니다."
+        print(f"Invalid word: {error_message}")
+        return False, error_message
 
     # 첫 번째 입력 처리
     if not history:
         print("DEBUG: First word. Performing dictionary validation.")
         if not is_valid_korean_word(word):  # 사전 유효성 검사 추가
-            print(f"Word '{word}' is not valid according to the dictionary.")
-            return False, "단어가 사전에 존재하지 않습니다."
+            error_message = "단어가 사전에 존재하지 않습니다."
+            print(f"Invalid word: {error_message}")
+
+            return False, error_message
         return True, None  # 유효하면 통과
 
-    # 끝말잇기 규칙 확인: 이전 단어의 마지막 글자와 현재 단어의 첫 글자
+    # 끝말잇기 규칙 확인: 이전 단어의 마지막 글자와 현재 단어의 첫 글자 (두음법칙 적용)
     last_word = history[-1]
-    if last_word[-1] != word[0]:
-        error_message = f"단어는 '{last_word[-1]}'로 시작해야 합니다."
+    last_char = apply_duum_law(last_word[-1])  # 컴퓨터 단어 마지막 글자에 두음법칙 적용
+    if last_char != word[0]:  # 사용자의 단어 첫 글자와 비교
+        error_message = f"단어는 '{last_char}'로 시작해야 합니다."
         print(f"Invalid word: {error_message}")
         return False, error_message
 
     # 단어 중복 검사
     if word in history:
-        print(f"Word '{word}' has already been used.")
-        return False, "이미 사용된 단어입니다."
+        error_message = "이미 사용된 단어입니다."
+        print(f"Invalid word: {error_message}")
+        return False, error_message
 
     # 단어 유효성 검사
     if not is_valid_korean_word(word):
-        print(f"Word '{word}' is not valid according to the dictionary.")
-        return False, "단어가 사전에 존재하지 않습니다."
+        error_message = "단어가 사전에 존재하지 않습니다."
+        print(f"Invalid word: {error_message}")
+        return False, error_message
 
+    # 유효한 단어일 경우
     return True, None
+
 
 
 
