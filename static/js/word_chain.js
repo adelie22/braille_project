@@ -1,8 +1,14 @@
 // 사용자와 컴퓨터가 사용한 단어를 저장하는 배열
 let history = [];
 let invalidAttempts = 0; // 잘못된 시도 횟수
+let invalidAttemptsEn = 0; // 🟨 영어 틀린 횟수
 
-// 게임 초기화 함수
+// 🟨 추가된 변수: 횟수 관리
+let exchangeCount = 0; // 주고받은 횟수
+let exchangeCountEn = 0; // 영어 끝말잇기 주고받은 횟수
+
+
+// 한국어 게임 초기화 함수
 function resetGame() {
     fetch('/word_chain/reset', { method: 'POST' })
         .then(response => {
@@ -17,6 +23,11 @@ function resetGame() {
 
             history = []; // 클라이언트 측 기록 초기화
             invalidAttempts = 0; // 잘못된 시도 횟수 초기화
+
+            // 🟨 추가된 부분: 횟수 초기화
+            exchangeCount = 0;
+            document.getElementById('exchange-count').textContent = exchangeCount; // UI 업데이트
+            document.getElementById('error-count').textContent = invalidAttempts;
 
             // UI 초기화
             document.getElementById('history').innerHTML = '';
@@ -42,7 +53,13 @@ function resetGameEn() {
         .then(data => {
             console.log(data.message); // 서버 응답 확인
             history = []; // 클라이언트 측 기록 초기화
-            invalidAttempts = 0; // 잘못된 시도 횟수 초기화
+            invalidAttemptsEn = 0; // 🟨 영어 틀린 횟수 초기화
+
+            // 🟨 추가된 부분: 횟수 초기화
+    
+            exchangeCountEn = 0;
+            document.getElementById('exchange-count-en').textContent = exchangeCountEn;
+            document.getElementById('error-count-en').textContent = invalidAttempts;
 
             // UI 초기화
             document.getElementById('history-en').innerHTML = '';
@@ -50,6 +67,9 @@ function resetGameEn() {
             document.getElementById('result-en').style.color = 'green';
             document.getElementById('user-word-en').value = ''; // 입력 필드 초기화
             document.getElementById('user-word-en').disabled = false; // 입력 필드 활성화
+
+            // 🟨 틀린 횟수 UI 업데이트
+            document.getElementById('error-count-en').textContent = invalidAttemptsEn;
         })
         .catch(error => {
             console.error('Error resetting the game:', error);
@@ -58,7 +78,7 @@ function resetGameEn() {
         });
 }
 
-// "제출" 버튼 클릭 이벤트 리스너
+// 한국어 "제출" 버튼 클릭 이벤트 리스너
 document.getElementById('submit-word').addEventListener('click', async () => {
     const word = document.getElementById('user-word').value.trim(); // 사용자 입력 값 가져오기
 
@@ -98,6 +118,10 @@ document.getElementById('submit-word').addEventListener('click', async () => {
             // 사용자 입력 단어를 history에 추가
             history.push(word);
 
+            // 🟨 추가된 부분: 횟수 업데이트
+            exchangeCount++;
+            document.getElementById('exchange-count').textContent = exchangeCount;
+          
             // 컴퓨터 단어 생성 API 호출
             const computerResponse = await fetch(`/word_chain/generate_word?history=${encodeURIComponent(history.join(','))}`);
 
@@ -111,6 +135,11 @@ document.getElementById('submit-word').addEventListener('click', async () => {
                 // 컴퓨터 단어를 history에 추가
                 history.push(computerResult.word);
                 console.log('Updated history after computer move:', history);
+
+                // 🟨 추가된 부분: 컴퓨터도 단어를 주었으므로 횟수 업데이트
+                exchangeCount++;
+                document.getElementById('exchange-count').textContent = exchangeCount;
+              
             } else {
                 const errorResult = await computerResponse.json(); // 에러 응답 처리
                 document.getElementById('result').textContent = errorResult.error || '컴퓨터가 단어를 생성하지 못했습니다.';
@@ -133,6 +162,10 @@ document.getElementById('submit-word').addEventListener('click', async () => {
             document.getElementById('result').style.color = 'red';
 
             invalidAttempts++;
+
+            // 🟨 추가된 부분: 틀린 횟수 업데이트
+            document.getElementById('error-count').textContent = invalidAttempts;
+
             if (invalidAttempts >= 3) {
                 document.getElementById('result').textContent = '게임이 끝났습니다. Enter을 눌러 재시작하거나 Esc를 눌러 종료하세요.';
                 setTimeout(() => {
@@ -155,7 +188,6 @@ document.getElementById('submit-word').addEventListener('click', async () => {
     // 입력 필드 초기화
     document.getElementById('user-word').value = '';
 });
-
 // 🟨 영어 제출 버튼 클릭 이벤트 추가
 // "제출" 버튼 클릭 이벤트 리스너
 document.getElementById('submit-word-en').addEventListener('click', async () => {
@@ -197,6 +229,10 @@ document.getElementById('submit-word-en').addEventListener('click', async () => 
             // 사용자 입력 단어를 history에 추가
             history.push(word);
 
+            // 🟨 교환 횟수 업데이트
+            exchangeCountEn++;
+            document.getElementById('exchange-count-en').textContent = exchangeCountEn;
+
             // 컴퓨터 단어 생성 API 호출
             const computerResponse = await fetch('/word_chain_en/generate_word');
 
@@ -207,6 +243,11 @@ document.getElementById('submit-word-en').addEventListener('click', async () => 
                     computerItem.textContent = `Computer: ${computerResult.word}`;
                     document.getElementById('history-en').appendChild(computerItem);
                     history.push(computerResult.word);
+
+                    // 🟨 컴퓨터 응답 후 교환 횟수 증가
+                    exchangeCountEn++;
+                    document.getElementById('exchange-count-en').textContent = exchangeCountEn;
+
                 } else {
                     throw new Error('No word generated by the computer.');
                 }
@@ -225,11 +266,14 @@ document.getElementById('submit-word-en').addEventListener('click', async () => 
                 }, 100);
             }
         } else {
+            // 🟨 유효하지 않은 단어일 경우 틀린 횟수 증가
+            invalidAttemptsEn++;
+            document.getElementById('error-count-en').textContent = invalidAttemptsEn; // 🟨 틀린 횟수 UI 업데이트
+
             document.getElementById('result-en').textContent = result.error || 'Invalid word.';
             document.getElementById('result-en').style.color = 'red';
 
-            invalidAttempts++;
-            if (invalidAttempts >= 3) {
+            if (invalidAttemptsEn >= 3) { // 🟨 게임 종료 조건
                 document.getElementById('result-en').textContent = 'Game over. Press Enter to restart or Esc to quit.';
                 setTimeout(() => {
                     const continueGame = confirm('Do you want to continue? Press Enter to restart, Esc to quit.');
@@ -249,6 +293,7 @@ document.getElementById('submit-word-en').addEventListener('click', async () => 
 
     document.getElementById('user-word-en').value = ''; // 입력 필드 초기화
 });
+
 
 
 // "엔터" 키로 제출 이벤트 트리거
@@ -287,7 +332,7 @@ function quitGameEn() {
 
 
 
-// 한국어 끝말잇기 초기화 및 뒤로가기
+/// 한국어 끝말잇기 초기화 및 뒤로가기
 document.getElementById('back-to-menu-ko').addEventListener('click', async () => {
     try {
         // 서버에서 한국어 게임 초기화 요청
@@ -301,9 +346,14 @@ document.getElementById('back-to-menu-ko').addEventListener('click', async () =>
         // 클라이언트 데이터 초기화
         history = []; // 클라이언트의 게임 기록 초기화
         invalidAttempts = 0; // 틀린 시도 초기화
+        exchangeCount = 0; // 🟨 주고받은 횟수 초기화
         document.getElementById('history').innerHTML = ''; // 화면 기록 초기화
         document.getElementById('result').textContent = ''; // 결과 초기화
         document.getElementById('user-word').value = ''; // 입력 필드 초기화
+
+        // 🟨 추가: UI 횟수 관련 초기화
+        document.getElementById('exchange-count').textContent = exchangeCount; // 주고받은 횟수 초기화
+        document.getElementById('error-count').textContent = invalidAttempts; // 틀린 횟수 초기화
 
         // 화면 전환
         document.getElementById('word-chain-game').classList.add('hidden'); // 한국어 끝말잇기 숨기기
@@ -327,10 +377,15 @@ document.getElementById('back-to-menu-en').addEventListener('click', async () =>
 
         // 클라이언트 데이터 초기화
         history = []; // 클라이언트의 게임 기록 초기화
-        invalidAttempts = 0; // 틀린 시도 초기화
+        invalidAttemptsEn = 0; // 🟨 틀린 시도 초기화
+        exchangeCountEn = 0; // 🟨 주고받은 횟수 초기화
         document.getElementById('history-en').innerHTML = ''; // 화면 기록 초기화
         document.getElementById('result-en').textContent = ''; // 결과 초기화
         document.getElementById('user-word-en').value = ''; // 입력 필드 초기화
+
+        // 🟨 추가: UI 횟수 관련 초기화
+        document.getElementById('exchange-count-en').textContent = exchangeCountEn; // 주고받은 횟수 초기화
+        document.getElementById('error-count-en').textContent = invalidAttemptsEn; // 틀린 횟수 초기화
 
         // 화면 전환
         document.getElementById('word-chain-game-en').classList.add('hidden'); // 영어 끝말잇기 숨기기

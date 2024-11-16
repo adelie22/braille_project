@@ -28,7 +28,23 @@
             margin-bottom: 10px;
         }
 
+        #user-word-en {
+        width: 50%; 
+        padding: 10px; 
+        font-size: 16x; 
+        margin-bottom: 10px; 
+    }
+
         #submit-word {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        #submit-word-en {
             padding: 10px 20px;
             font-size: 16px;
             background-color: #007bff;
@@ -78,6 +94,8 @@
         button#english-btn:hover {
             background-color: darkgray;
         }
+        
+
     </style>
 </head>
 
@@ -96,6 +114,10 @@
     <button id="submit-word">제출</button>
     <button id="back-to-menu-ko">뒤로가기</button> <!-- 뒤로가기 버튼 -->
     <p id="result"></p>
+    <div>
+        <p><strong>현재 주고받은 횟수:</strong> <span id="exchange-count">0</span></p>
+        <p><strong>틀린 횟수:</strong> <span id="error-count">0</span></p>
+    </div>
     <h3>게임 기록</h3>
     <ul id="history"></ul>
 </div>
@@ -107,9 +129,14 @@
     <button id="submit-word-en">Submit</button>
     <button id="back-to-menu-en">Back to Menu</button> <!-- 뒤로가기 버튼 -->
     <p id="result-en"></p>
+    <div>
+        <p><strong>Turns Taken:</strong> <span id="exchange-count-en">0</span></p>
+        <p><strong>Mistakes Made:</strong> <span id="error-count-en">0</span></p>
+    </div>
     <h3>Game History</h3>
     <ul id="history-en"></ul>
 </div>
+
 
     <script>
         // 언어 선택 버튼 이벤트
