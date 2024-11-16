@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,18 +12,22 @@
             padding: 20px;
             background-color: #f4f4f4;
         }
+
         h1 {
             color: #333;
         }
+
         .hidden {
             display: none;
         }
+
         #user-word {
             width: 50%;
             padding: 10px;
             font-size: 16px;
             margin-bottom: 10px;
         }
+
         #submit-word {
             padding: 10px 20px;
             font-size: 16px;
@@ -31,42 +36,51 @@
             border: none;
             cursor: pointer;
         }
+
         #submit-word:hover {
             background-color: #0056b3;
         }
+
         #result {
             margin-top: 20px;
             font-size: 18px;
             color: green;
         }
+
         #history {
             margin-top: 20px;
             list-style-type: none;
             padding: 0;
         }
+
         #history li {
             padding: 5px 0;
             font-size: 16px;
         }
+
         #history li:nth-child(even) {
             background-color: #e9ecef;
         }
+
         button {
             padding: 10px 20px;
             font-size: 16px;
             margin: 10px;
             cursor: pointer;
         }
+
         button#english-btn {
             background-color: gray;
             color: white;
             border: none;
         }
+
         button#english-btn:hover {
             background-color: darkgray;
         }
     </style>
 </head>
+
 <body>
     <!-- 언어 선택 화면 -->
     <div id="language-selection">
@@ -75,7 +89,7 @@
         <button id="english-btn">English</button>
     </div>
 
-    <!-- 끝말잇기 게임 화면 -->
+    <!-- 한국어 끝말잇기 게임 화면 -->
     <div id="word-chain-game" class="hidden">
         <h1>끝말잇기 게임</h1>
         <input type="text" id="user-word" placeholder="단어 입력">
@@ -85,20 +99,33 @@
         <ul id="history"></ul>
     </div>
 
+    <!-- 영어 끝말잇기 게임 화면 -->
+    <div id="word-chain-game-en" class="hidden">
+        <h1>Word Chain Game</h1>
+        <input type="text" id="user-word-en" placeholder="Enter a word">
+        <button id="submit-word-en">Submit</button>
+        <p id="result-en"></p>
+        <h3>Game History</h3>
+        <ul id="history-en"></ul>
+    </div>
+
     <script>
         // 언어 선택 버튼 이벤트
         document.getElementById('korean-btn').addEventListener('click', () => {
-            // 끝말잇기 화면 표시
+            // 한국어 끝말잇기 화면 표시
             document.getElementById('language-selection').classList.add('hidden');
             document.getElementById('word-chain-game').classList.remove('hidden');
         });
 
         document.getElementById('english-btn').addEventListener('click', () => {
-            alert('현재 English는 지원되지 않습니다. 한국어로 진행해주세요!');
+            // 영어 끝말잇기 화면 표시
+            document.getElementById('language-selection').classList.add('hidden');
+            document.getElementById('word-chain-game-en').classList.remove('hidden');
         });
     </script>
 
     <!-- JS 파일 로드 -->
     <script src="{{ url_for('static', filename='js/word_chain.js') }}"></script>
 </body>
+
 </html>

@@ -53,7 +53,7 @@ def fetch_nouns_from_api(starting_char, num_results=100):
 
 # 테스트 실행
 if __name__ == "__main__":
-    starting_char = "사"  # 시작 글자를 지정
+    starting_char = "아아아"  # 시작 글자를 지정
     nouns = fetch_nouns_from_api(starting_char)  # 결과를 리스트로 저장
 
     if nouns:  # 리스트가 비어있지 않을 때
