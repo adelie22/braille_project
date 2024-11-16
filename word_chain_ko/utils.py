@@ -5,7 +5,7 @@ API_URL = "https://opendict.korean.go.kr/api/search"
 
 import re
 
-def fetch_nouns_from_api(starting_char, num_results=50):
+def fetch_nouns_from_api(starting_char, num_results=20):
     """
     특정 초성으로 시작하는 명사를 API에서 가져옵니다.
     """
@@ -24,14 +24,14 @@ def fetch_nouns_from_api(starting_char, num_results=50):
     }
 
     try:
-        print(f"DEBUG: Fetching nouns from API with starting_char '{starting_char}'")
+        # print(f"DEBUG: Fetching nouns from API with starting_char '{starting_char}'")
         response = requests.get(API_URL, params=params)
         response.raise_for_status()
         data = response.json()
 
         # API 응답에서 단어 추출
         items = data.get("channel", {}).get("item", [])
-        print(f"DEBUG: Items count: {len(items)}")
+        # print(f"DEBUG: Items count: {len(items)}")
 
         def clean_word(word):
             """
@@ -48,15 +48,15 @@ def fetch_nouns_from_api(starting_char, num_results=50):
                 cleaned_word = clean_word(word)
                 nouns.append(cleaned_word)
 
-        print(f"DEBUG: Cleaned nouns: {nouns}")
+        # print(f"DEBUG: Cleaned nouns: {nouns}")
 
         # 초성으로 시작하는 단어 필터링
         filtered_nouns = [word for word in nouns if word.startswith(starting_char)]
-        print(f"DEBUG: Nouns starting with '{starting_char}': {filtered_nouns}")
+        # print(f"DEBUG: Nouns starting with '{starting_char}': {filtered_nouns}")
 
         # 2~3글자 단어로 최종 필터링
         final_nouns = [word for word in filtered_nouns if 2 <= len(word) <= 3]
-        print(f"DEBUG: Final filtered nouns (2~3 chars): {final_nouns}")
+        # print(f"DEBUG: Final filtered nouns (2~3 chars): {final_nouns}")
 
         return final_nouns
 

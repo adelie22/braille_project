@@ -33,7 +33,7 @@ def check_word_validity(word, history):
     last_word = history[-1]
     last_char = apply_duum_law(last_word[-1])  # 컴퓨터 단어 마지막 글자에 두음법칙 적용
     if last_char != word[0]:  # 사용자의 단어 첫 글자와 비교
-        error_message = f"단어는 '{last_char}'로 시작해야 합니다."
+        error_message = f"단어는 '{last_char}'으로 시작해야 합니다."
         print(f"Invalid word: {error_message}")
         return False, error_message
 
@@ -102,38 +102,38 @@ def generate_next_word(history):
     last_word = history[-1]  # 사용자가 마지막으로 입력한 단어
     last_char = last_word[-1]  # 마지막 글자 추출
 
-    print(f"DEBUG: Last word in history: {last_word}")
-    print(f"DEBUG: Last character of last word: {last_char}")
+    # print(f"DEBUG: Last word in history: {last_word}")
+    # print(f"DEBUG: Last character of last word: {last_char}")
 
     # 두음법칙 적용된 음절로 후보 찾기 (우선적으로 적용)
     transformed_char = apply_duum_law(last_char)
-    print(f"DEBUG: Transformed char after duum law: {transformed_char}")
+    # print(f"DEBUG: Transformed char after duum law: {transformed_char}")
     candidates = fetch_nouns_from_api(transformed_char)
-    print(f"DEBUG: Candidates from API with transformed char '{transformed_char}': {candidates}")
+    # print(f"DEBUG: Candidates from API with transformed char '{transformed_char}': {candidates}")
 
     # 두음법칙으로 후보가 없을 경우 원래 마지막 글자로 후보 찾기
     if not candidates:
-        print(f"DEBUG: No candidates with transformed char '{transformed_char}'. Trying last char '{last_char}'...")
+        # print(f"DEBUG: No candidates with transformed char '{transformed_char}'. Trying last char '{last_char}'...")
         candidates = fetch_nouns_from_api(last_char)
-        print(f"DEBUG: Candidates from API with last char '{last_char}': {candidates}")
+        # print(f"DEBUG: Candidates from API with last char '{last_char}': {candidates}")
 
     # 후보가 없다면 None 반환
     if not candidates:
-        print("DEBUG: No valid candidates available. Ending the game.")
+        # print("DEBUG: No valid candidates available. Ending the game.")
         return None
 
     # 2글자 이상 단어만 필터링
     filtered_candidates = [word for word in candidates if len(word) >= 2]
-    print(f"DEBUG: Filtered candidates (2 or more chars): {filtered_candidates}")
+    # print(f"DEBUG: Filtered candidates (2 or more chars): {filtered_candidates}")
 
     # 필터링 후 후보가 없다면 None 반환
     if not filtered_candidates:
-        print("DEBUG: No valid 2-character candidates available. Ending the game.")
+        # print("DEBUG: No valid 2-character candidates available. Ending the game.")
         return None
 
     # 후보가 있다면 무작위로 선택하여 반환
     chosen_word = random.choice(filtered_candidates)
-    print(f"DEBUG: Chosen computer word: {chosen_word}")
+    # print(f"DEBUG: Chosen computer word: {chosen_word}")
     return chosen_word
 
 

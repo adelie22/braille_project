@@ -20,7 +20,7 @@ def is_word_in_dictionary(word):
         if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):
             print(f"DEBUG: Word '{word}' exists in the dictionary.")
             return True
-        print(f"DEBUG: Word '{word}' does not exist in the dictionary.")
+        # print(f"DEBUG: Word '{word}' does not exist in the dictionary.")
         return False
     except requests.exceptions.RequestException as e:
         print(f"Error checking word in dictionary: {e}")
@@ -44,7 +44,7 @@ def check_word_validity(word, history):
 
     # 처음 입력된 단어는 바로 통과
     if not history:
-        print(f"DEBUG: History is empty. '{word}' added as the first word.")
+        # print(f"DEBUG: History is empty. '{word}' added as the first word.")
         return True, None
 
     # 끝말잇기 규칙 확인: 이전 단어의 마지막 글자와 현재 단어의 첫 글자
@@ -59,7 +59,7 @@ def check_word_validity(word, history):
         print(f"Word '{word}' has already been used.")
         return False, "The word has already been used."
 
-    print(f"DEBUG: Word '{word}' is valid.")
+    # print(f"DEBUG: Word '{word}' is valid.")
     return True, None
 
 
@@ -73,7 +73,7 @@ def is_valid_english_word(word):
         response = requests.get(f"{API_URL}/{word}", params=params)
         response.raise_for_status()
         data = response.json()
-        print(f"DEBUG: API response for '{word}': {data}")
+        # print(f"DEBUG: API response for '{word}': {data}")
 
         # 단어 존재 여부 확인
         return isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict)
@@ -87,7 +87,7 @@ def generate_next_word(history):
     끝말잇기를 위한 컴퓨터의 다음 단어 생성.
     """
     if not history:
-        print("DEBUG: History is empty. No word to generate from.")
+        # print("DEBUG: History is empty. No word to generate from.")
         return None
 
     last_word = history[-1]
@@ -175,17 +175,17 @@ def generate_next_word(history):
 
     # 마지막 글자로 시작하는 단어 필터링
     filtered_words = [word for word in possible_words if word.startswith(last_char) and word not in history]
-    print(f"DEBUG: Filtered words starting with '{last_char}': {filtered_words}")
+    # print(f"DEBUG: Filtered words starting with '{last_char}': {filtered_words}")
 
     # 후보가 없으면 None 반환
     if not filtered_words:
-        print("DEBUG: No valid candidates available. Game over.")
+        # print("DEBUG: No valid candidates available. Game over.")
         return None
 
     # 후보 중 랜덤으로 선택
     chosen_word = random.choice(filtered_words)
     history.append(chosen_word)
-    print(f"DEBUG: Computer chose '{chosen_word}'.")
+    # print(f"DEBUG: Computer chose '{chosen_word}'.")
     return chosen_word
 
 
