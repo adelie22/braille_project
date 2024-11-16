@@ -12,45 +12,38 @@ def check_word_validity(word, history):
     """
     print(f"Validating word: {word}")
 
-    # 단어 길이 검사 (추가)
+    # 단어 길이 검사
     if len(word) < 2:
-        print(f"Word '{word}' is too short")
+        print(f"Word '{word}' is too short.")
         return False, "단어는 2글자 이상이어야 합니다."
 
+    # 첫 번째 입력 처리
     if not history:
-        print("DEBUG: History is empty, skipping last character check.")
-        return True, None  # 첫 번째 단어는 바로 통과
+        print("DEBUG: First word. Performing dictionary validation.")
+        if not is_valid_korean_word(word):  # 사전 유효성 검사 추가
+            print(f"Word '{word}' is not valid according to the dictionary.")
+            return False, "단어가 사전에 존재하지 않습니다."
+        return True, None  # 유효하면 통과
 
-    # 컴퓨터가 마지막으로 생성한 단어
-    last_word = history[-1]  # 최신 history의 마지막 단어
-    last_char = last_word[-1]  # 마지막 단어의 끝 글자
-    transformed_char = apply_duum_law(last_char)  # 두음법칙 적용된 글자
-
-    first_char = word[0]  # 사용자가 입력한 단어의 첫 글자
-
-    print(f"DEBUG: Server history: {history}")
-    print(f"DEBUG: Last computer word: {last_word}")
-    print(f"DEBUG: Last character of last computer word: {last_char}")
-    print(f"DEBUG: Transformed char after duum law: {transformed_char}")
-    print(f"DEBUG: First character of user word: {first_char}")
-
-    # 두음법칙 적용 후 비교
-    if transformed_char != first_char:
-        error_message = f"단어는 '{transformed_char}'로 시작해야 합니다."
+    # 끝말잇기 규칙 확인: 이전 단어의 마지막 글자와 현재 단어의 첫 글자
+    last_word = history[-1]
+    if last_word[-1] != word[0]:
+        error_message = f"단어는 '{last_word[-1]}'로 시작해야 합니다."
         print(f"Invalid word: {error_message}")
         return False, error_message
 
     # 단어 중복 검사
     if word in history:
-        print(f"Word '{word}' has already been used")
+        print(f"Word '{word}' has already been used.")
         return False, "이미 사용된 단어입니다."
 
     # 단어 유효성 검사
     if not is_valid_korean_word(word):
-        print(f"Word '{word}' is not valid according to the dictionary")
+        print(f"Word '{word}' is not valid according to the dictionary.")
         return False, "단어가 사전에 존재하지 않습니다."
 
     return True, None
+
 
 
 import hgtk
