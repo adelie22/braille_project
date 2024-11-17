@@ -59,11 +59,17 @@ async function submitWordKo() {
 
         const result = await response.json();
 
+    
+
         if (response.ok && result.history) {
             history = result.history; // 서버로부터 history 동기화
             document.getElementById('result').textContent = '유효한 단어입니다!';
             document.getElementById('result').style.color = 'green';
             speakText(word, 'ko-KR');
+
+            history = result.history; // 서버로부터 history 동기화
+            const lastComputerWord = history[history.length - 1];
+            const lastChar = lastComputerWord.charAt(lastComputerWord.length - 1);
 
             // 기록 추가
             const userItem = document.createElement('li');
@@ -100,8 +106,22 @@ async function submitWordKo() {
             document.getElementById('result').textContent =
                 result.error || '유효하지 않은 단어입니다!';
             document.getElementById('result').style.color = 'red';
-            // speakText('유효하지 않은 단어입니다!', 'ko-KR');
+            // speakText('유효하지 않은 단어입니다!', 'ko-KR')
+            if (invalidAttempts >= 3) {
+                speakText("게임이 종료되었습니다. 다시 시작하려면 엔터, 종료하려면 ESC를 누르세요.", 'ko-KR');
+                document.getElementById('result').textContent =
+                    '게임 종료. 다시 시작하시겠습니까?';
+                setTimeout(() => {
+                    const restart = confirm('게임이 종료되었습니다. 다시 시작하려면 확인을 누르세요.');
+                    if (restart) {
+                        resetGame(); // 게임 초기화
+                    } else {
+                        quitGame(); // 게임 종료
+                    }
+                }, 2000); // 2초 후 팝업 창 표시
+            }
         }
+        
     } catch (error) {
         console.error('Error:', error);
         document.getElementById('result').textContent = '네트워크 오류가 발생했습니다!';
@@ -357,7 +377,7 @@ document.getElementById('submit-word-en').addEventListener('click', async () => 
             document.getElementById('error-count-en').textContent = invalidAttemptsEn; // 🟨 틀린 횟수 UI 업데이트
             document.getElementById('result-en').textContent = result.error || 'Invalid word.';
             document.getElementById('result-en').style.color = 'red';
-
+            //3번이상 틀리면 resetGameEn함수, quitGameEn함수 호출해서 게임종료, 초기화
             if (invalidAttemptsEn >= 3) {
                 speakText("The game is over. Press Enter to restart or - E-S-C  to quit", 'en-US', 2.0);
                 document.getElementById('result-en').textContent =
