@@ -102,7 +102,6 @@ async function submitWordKo() {
             document.getElementById('result').textContent =
                 result.error || '유효하지 않은 단어입니다!';
             document.getElementById('result').style.color = 'red';
-            speakText('유효하지 않은 단어입니다!', 'ko-KR');
             if (invalidAttempts >= 3) {
                 speakText("게임이 종료되었습니다. 다시 시작하려면 엔터, 종료하려면 ESC를 누르세요.", 'ko-KR');
                 document.getElementById('result').textContent =
@@ -114,7 +113,7 @@ async function submitWordKo() {
                     } else {
                         quitGame(); // 게임 종료
                     }
-                }, 2000);
+                }, 1000);
             }
         }
     } catch (error) {
@@ -128,6 +127,8 @@ async function submitWordKo() {
 }
 
 
+
+const rate = 1.5; // 음성 속도 설정
 
 
 // 🟨 영어 단어 제출 로직
@@ -212,6 +213,8 @@ async function submitWordEn() {
 }
 
 
+
+
 // 단어 입력창에서 엔터키 동작 제어 (한국어)
 document.getElementById('user-word').addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
@@ -251,6 +254,7 @@ function resetGame() {
             exchangeCount = 0;
 
             // 🟨 UI 초기화
+            speakText("게임이 초기화되었습니다. 새로 시작하세요", 'ko-KR');
             document.getElementById('history').innerHTML = '';
             document.getElementById('result').textContent = '게임이 초기화되었습니다. 새로 시작하세요!';
             document.getElementById('result').style.color = 'green';
@@ -284,6 +288,7 @@ function resetGameEn() {
             exchangeCountEn = 0;
 
             // 🟨 UI 초기화
+            speakText("Game has been reset. Start again", 'en-US');
             document.getElementById('history-en').innerHTML = '';
             document.getElementById('result-en').textContent = 'Game has been reset. Start again!';
             document.getElementById('result-en').style.color = 'green';
