@@ -15,7 +15,7 @@ def fetch_nouns_from_api(starting_char, num_results=20):
         "req_type": "json",
         "part": "word",
         "sort": "popular",
-        "type3": "general",
+        "type": "general",
         "type4" : "general",
         "pos": 1,
         "num": num_results,

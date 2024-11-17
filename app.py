@@ -39,6 +39,25 @@ def internal_error(error):
 def word_chain():
     return render_template('word_chain.html')  # Render templates/word_chain.html
 
+
+# 🟩 초기화 엔드포인트 추가 (추가)
+@app.route('/word_chain/reset', methods=['POST'])
+def reset_word_chain_ko():
+    """초기화: 한국어 끝말잇기 전역 상태"""
+    global history_ko
+    history_ko = []  # 한국어 전역 기록 초기화
+    return jsonify({"message": "Korean Word Chain has been reset", "history": history_ko})
+
+@app.route('/word_chain_en/reset', methods=['POST'])
+def reset_word_chain_en():
+    """초기화: 영어 끝말잇기 전역 상태"""
+    global history_en
+    history_en = []  # 영어 전역 기록 초기화
+    return jsonify({"message": "English Word Chain has been reset", "history": history_en})
+
+
+
+
 # Register other existing blueprints (if needed)
 register_blueprints(app)
 
