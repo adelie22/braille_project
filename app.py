@@ -55,9 +55,6 @@ def reset_word_chain_en():
     history_en = []  # 영어 전역 기록 초기화
     return jsonify({"message": "English Word Chain has been reset", "history": history_en})
 
-
-
-
 # Register other existing blueprints (if needed)
 register_blueprints(app)
 

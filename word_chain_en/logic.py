@@ -34,7 +34,7 @@ def check_word_validity(word, history):
     print(f"Validating word: {word}")
 
     # 단어 길이 검사
-    if len(word) < 2:
+    if len(word) < 3:
         print(f"Word '{word}' is too short.")
         return False, "The word must be at least 2 letters long."
 

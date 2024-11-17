@@ -9,14 +9,24 @@ let exchangeCountEn = 0; // 영어 끝말잇기 주고받은 횟수
 let isSubmitting = false;
 
 
-function speakText(text, lang = 'ko-KR') {
+function speakText(text, lang = 'ko-KR', rate = 1.0) {
     window.speechSynthesis.cancel(); // 현재 음성 중단
     setTimeout(() => {
         const speech = new SpeechSynthesisUtterance(text);
         speech.lang = lang;
+        speech.rate = rate; // Adjust the rate (default is 1.0)
         window.speechSynthesis.speak(speech);
     }, 100); // 짧은 딜레이 추가
 }
+
+// function speakTexten(text, lang = 'en-US') {
+//     window.speechSynthesis.cancel(); // 현재 음성 중단
+//     setTimeout(() => {
+//         const speech = new SpeechSynthesisUtterance(text);
+//         speech.lang = lang;
+//         window.speechSynthesis.speak(speech);
+//     }, 100); // 짧은 딜레이 추가
+// }
 
 async function submitWordKo() {
     if (isSubmitting) return; // 중복 방지
@@ -34,7 +44,7 @@ async function submitWordKo() {
         if (word.length < 2) {
             document.getElementById('result').textContent = '단어는 2글자 이상이어야 합니다!';
             document.getElementById('result').style.color = 'red';
-            // speakText('단어는 두 글자 이상이어야 합니다.', 'ko-KR');
+            speakText('단어는 두 글자 이상이어야 합니다.', 'ko-KR');
             return;
         }
 
@@ -109,19 +119,6 @@ async function submitWordEn() {
     isSubmitting = true;
 
     const word = document.getElementById('user-word-en').value.trim();
-
-    if (!word) {
-        document.getElementById('result-en').textContent = 'Please enter a word!';
-        document.getElementById('result-en').style.color = 'red';
-        setTimeout(() => (isSubmitting = false), 100); // 플래그 초기화
-        return;
-    } else if (word.length < 2) {
-        document.getElementById('result-en').textContent = 'The word must be at least 2 letters long!';
-        document.getElementById('result-en').style.color = 'red';
-        setTimeout(() => (isSubmitting = false), 100); // 플래그 초기화
-
-        return;
-    }
 
     try {
         speakText(word, 'en-US');
@@ -288,9 +285,11 @@ document.getElementById('submit-word-en').addEventListener('click', async () => 
         document.getElementById('result-en').style.color = 'red';
         setTimeout(() => (isSubmitting = false), 100); // 플래그 초기화
         return;
-    } else if (word.length < 2) {
-        document.getElementById('result-en').textContent = 'The word must be at least 2 letters long!';
+    } else if (word.length < 3) {
+        speakText("The word must be at least three letters long", 'en-US', 2.0);
+        document.getElementById('result-en').textContent = 'The word must be at least 3 letters long!';
         document.getElementById('result-en').style.color = 'red';
+        
         setTimeout(() => (isSubmitting = false), 100); // 플래그 초기화
         return;
     }
@@ -360,8 +359,9 @@ document.getElementById('submit-word-en').addEventListener('click', async () => 
             document.getElementById('result-en').style.color = 'red';
 
             if (invalidAttemptsEn >= 3) {
+                speakText("The game is over. Press Enter to restart or - E-S-C  to quit", 'en-US', 2.0);
                 document.getElementById('result-en').textContent =
-                    'Game over. Press Enter to restart or Esc to quit.';
+                    'Game over. Press Enter to restart or ESC to quit.';
                 setTimeout(() => {
                     const continueGame = confirm(
                         'Do you want to continue? Press Enter to restart, Esc to quit.'
@@ -538,7 +538,7 @@ document.getElementById('back-to-menu-en').addEventListener('click', async () =>
 // 메뉴 항목 및 초기 상태
 const menuItems = [
     { id: 'korean-btn', text: '한국어', voice: '한국어' },
-    { id: 'english-btn', text: 'English', voice: 'English' }
+    { id: 'english-btn', text: 'English', voice: '영어' }
 ];
 let currentIndex = 0; // 현재 선택된 메뉴 인덱스
 let inLanguageSelection = true; // 현재 언어 선택 화면 상태
