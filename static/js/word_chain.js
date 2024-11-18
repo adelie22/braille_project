@@ -139,8 +139,62 @@ async function submitWordEn() {
     const word = document.getElementById('user-word-en').value.trim();
 
     try {
-        speakText(word, 'en-US');
+        // 🟨 단어가 3자 미만일 경우 처리
+        if (!word || word.length < 3) {
+            const message = 'The word must be at least three letters long.';
+            document.getElementById('result-en').textContent = message;
+            document.getElementById('result-en').style.color = 'red';
+            await speakText(message, 'en-US'); // 음성 출력
+            isSubmitting = false; // 플래그 초기화
+            return; // 흐름 종료
+        }
 
+        // 🟨 이미 사용한 단어 체크
+        if (history.includes(word)) {
+            const message = 'The word has already been used.';
+            document.getElementById('result-en').textContent = message;
+            document.getElementById('result-en').style.color = 'red';
+            await speakText(message, 'en-US'); // 음성 출력
+            isSubmitting = false; // 플래그 초기화
+            return; // 흐름 종료
+        }
+
+        // 🟨 끝말로 시작하지 않는 경우 처리
+        if (history.length > 0) {
+            const lastComputerWord = history[history.length - 1];
+            const lastChar = lastComputerWord.charAt(lastComputerWord.length - 1).toLowerCase();
+            const firstChar = word.charAt(0).toLowerCase();
+
+            if (lastChar !== firstChar) {
+                invalidAttemptsEn++; // 틀린 횟수 증가
+                const message = `The word must start with '${lastChar}'.`;
+                document.getElementById('error-count-en').textContent = invalidAttemptsEn; // 틀린 횟수 UI 업데이트
+                document.getElementById('result-en').textContent = message;
+                document.getElementById('result-en').style.color = 'red';
+                await speakText(message, 'en-US'); // 음성 출력
+                if (invalidAttemptsEn >= 3) {
+                    const gameOverMessage = 'Game over. Press Enter to restart - or E-s-c to quit';
+                    await speakText(gameOverMessage, 'en-US'); // 게임 오버 음성 출력
+                    document.getElementById('result-en').textContent = gameOverMessage;
+                    setTimeout(() => {
+                        const continueGame = confirm(
+                            'Do you want to continue? Press Enter to restart, Esc to quit.'
+                        );
+                        if (continueGame) {
+                            resetGameEn(); // 게임 초기화
+                        } else {
+                            quitGameEn(); // 게임 종료
+                        }
+                    }, 2000); // 2초 딜레이 후 확인 팝업 표시
+                }
+                isSubmitting = false; // 플래그 초기화
+                return; // 흐름 종료
+            }
+        }
+
+        speakText(word, 'en-US'); // 사용자 입력 단어 음성 출력
+
+        // 🟨 유효성 검사 API 호출
         const response = await fetch('/word_chain_en/check_word', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -181,14 +235,15 @@ async function submitWordEn() {
         } else {
             // 🟨 유효하지 않은 단어 처리
             invalidAttemptsEn++;
-            document.getElementById('error-count-en').textContent = invalidAttemptsEn; // 🟨 틀린 횟수 UI 업데이트
-            document.getElementById('result-en').textContent = result.error || 'Invalid word.';
+            const message = result.error || 'Invalid word.';
+            document.getElementById('error-count-en').textContent = invalidAttemptsEn; // 틀린 횟수 UI 업데이트
+            document.getElementById('result-en').textContent = message;
             document.getElementById('result-en').style.color = 'red';
-
-            if (invalidAttemptsEn >= 3) { // 🟨 틀린 횟수가 3번 이상일 경우
-                speakText('Game over. Press Enter to restart - or E-s-c to quit', 'en-US');
-                document.getElementById('result-en').textContent =
-                    'Game over. Press Enter to restart or Esc to quit.';
+            await speakText(message, 'en-US'); // 음성 출력
+            if (invalidAttemptsEn >= 3) {
+                const gameOverMessage = 'Game over. Press Enter to restart - or E-s-c to quit';
+                await speakText(gameOverMessage, 'en-US'); // 게임 오버 음성 출력
+                document.getElementById('result-en').textContent = gameOverMessage;
                 setTimeout(() => {
                     const continueGame = confirm(
                         'Do you want to continue? Press Enter to restart, Esc to quit.'
@@ -202,8 +257,10 @@ async function submitWordEn() {
             }
         }
     } catch (error) {
-        document.getElementById('result-en').textContent = 'Network error. Please try again.';
+        const message = 'Network error. Please try again.';
+        document.getElementById('result-en').textContent = message;
         document.getElementById('result-en').style.color = 'red';
+        await speakText(message, 'en-US'); // 네트워크 오류 음성 출력
         console.error('Error:', error);
     } finally {
         setTimeout(() => (isSubmitting = false), 100); // 플래그 초기화
@@ -211,6 +268,8 @@ async function submitWordEn() {
 
     document.getElementById('user-word-en').value = ''; // 입력 필드 초기화
 }
+
+
 
 
 
