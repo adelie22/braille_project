@@ -13,7 +13,8 @@ if PROJECT_DIR not in sys.path:
     sys.path.append(PROJECT_DIR)
 
 # 전역 변수 선언
-history = []  # 서버 전역 기록 초기화
+history_ko = []  # 한국어 끝말잇기 기록
+history_en = []  # 영어 끝말잇기 기록
 
 # Flask 애플리케이션 초기화
 app = Flask(__name__)
@@ -46,7 +47,7 @@ def reset_word_chain_ko():
     """초기화: 한국어 끝말잇기 전역 상태"""
     global history_ko
     history_ko = []  # 한국어 전역 기록 초기화
-    return jsonify({"message": "Korean Word Chain has been reset", "history": history_ko})
+    return jsonify({"message": "Korean Word Chain has been reset", "history": history})
 
 @app.route('/word_chain_en/reset', methods=['POST'])
 def reset_word_chain_en():
