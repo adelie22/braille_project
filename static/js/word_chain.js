@@ -1,15 +1,16 @@
 // 사용자와 컴퓨터가 사용한 단어를 저장하는 배열
-let history = [];
+let history = []; // 영어 히스토리
 let history_ko = [];
 let invalidAttempts = 0; // 잘못된 시도 횟수
 let invalidAttemptsEn = 0; // 🟨 영어 틀린 횟수
 
 // 🟨 추가된 변수: 횟수 관리
-let exchangeCount = 0; // 주고받은 횟수
+let exchangeCount = 0; // 한국어 끝말잇기 주고받은 횟수
 let exchangeCountEn = 0; // 영어 끝말잇기 주고받은 횟수
 let isSubmitting = false;
+let isSpeaking = false; // 음성 출력 상태를 관리하는 플래그 변수
 
-
+// 음성을 출력하는 함수
 function speakText(text, lang = 'ko-KR', rate = 1.0) {
     return new Promise((resolve) => {
         // 현재 진행 중인 음성 중단
@@ -31,6 +32,20 @@ function speakText(text, lang = 'ko-KR', rate = 1.0) {
     });
 }
 
+// 메시지와 음성을 통합적으로 출력하는 함수
+async function displayMessageAndSpeak(message, speakMessage, color) {
+    // 화면에 메시지 출력
+    document.getElementById('result').textContent = message;
+    document.getElementById('result').style.color = color;
+
+    // 음성 출력
+    if (!isSpeaking) {
+        isSpeaking = true;
+        await speakText(speakMessage, 'ko-KR');
+        setTimeout(() => (isSpeaking = false), 500);
+    }
+}
+
 async function submitWordKo() {
     if (isSubmitting) return; // 중복 방지
     isSubmitting = true; // 플래그 설정
@@ -42,33 +57,65 @@ async function submitWordKo() {
         let message = '';
         let speakMessage = '';
 
+        // 입력되지 않은 단어의 경우 처리
         if (!word) {
             message = '단어를 입력하세요!';
             speakMessage = message;
-        } else if (word.length < 2) {
-            message = '단어는 2글자 이상이어야 합니다!';
-            speakMessage = message;
+
+            // 메시지와 음성 출력
+            await displayMessageAndSpeak(message, speakMessage, 'red');
+            isSubmitting = false; // 플래그 초기화
+            return; // 흐름 종료
         }
 
-        // 조건 충족 시 메시지와 음성 한 번만 출력하고 함수 종료
-        if (message) {
-            document.getElementById('result').textContent = message;
-            document.getElementById('result').style.color = 'red';
+        // 단어 길이가 2글자 미만인 경우 처리
+        if (word.length < 2) {
+            message = '단어는 2글자 이상이어야 합니다!';
+            speakMessage = message;
 
-            if (!isSpeaking) {
-                isSpeaking = true;
-                await speakText(speakMessage, 'ko-KR');
-                setTimeout(() => (isSpeaking = false), 500);
-            }
+            // 메시지와 음성 출력
+            await displayMessageAndSpeak(message, speakMessage, 'red');
             isSubmitting = false; // 플래그 초기화
-            return;
+            return; // 흐름 종료
+        }
+
+        // 이전 단어의 마지막 글자로 시작하지 않는 경우 처리
+        if (history_ko.length > 0) {
+            const lastComputerWord = history_ko[history_ko.length - 1];
+            const lastChar = lastComputerWord.charAt(lastComputerWord.length - 1);
+            const firstChar = word.charAt(0);
+
+            if (lastChar !== firstChar) {
+                message = `'${lastChar}'로 시작하는 단어를 입력하세요.`;
+                speakMessage = message;
+
+                // 틀린 횟수 1 증가
+                invalidAttempts++;
+                document.getElementById('error-count').textContent = invalidAttempts;
+
+                // 메시지와 음성 출력
+                await displayMessageAndSpeak(message, speakMessage, 'red');
+                isSubmitting = false; // 플래그 초기화
+                return; // 흐름 종료
+            }
+        }
+
+        // 이미 사용된 단어일 경우 처리
+        if (history_ko.includes(word)) {
+            message = '이미 사용된 단어입니다.';
+            speakMessage = message;
+
+            // 메시지와 음성 출력
+            await displayMessageAndSpeak(message, speakMessage, 'red');
+            isSubmitting = false; // 플래그 초기화
+            return; // 흐름 종료
         }
 
         // 유효성 검사 API 호출 (history_ko 사용)
         const response = await fetch('/word_chain/check_word', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ word, history: history_ko }),  // 여기서 history_ko 사용
+            body: JSON.stringify({ word, history: history_ko }), // 여기서 history_ko 사용
         });
 
         const result = await response.json();
@@ -76,9 +123,11 @@ async function submitWordKo() {
         if (response.ok && result.history) {
             // 서버에서 최신의 history_ko를 동기화하여 사용
             history_ko = result.history;
-            document.getElementById('result').textContent = '유효한 단어입니다!';
-            document.getElementById('result').style.color = 'green';
-            await speakText(word, 'ko-KR');
+            message = '유효한 단어입니다!';
+            speakMessage = word;
+
+            // 메시지와 음성 출력
+            await displayMessageAndSpeak(message, speakMessage, 'green');
 
             const userItem = document.createElement('li');
             userItem.textContent = `사용자: ${word}`;
@@ -91,6 +140,7 @@ async function submitWordKo() {
             const computerResponse = await fetch(
                 `/word_chain/generate_word?history=${encodeURIComponent(history_ko.join(','))}`
             );
+
             if (computerResponse.ok) {
                 const computerResult = await computerResponse.json();
                 if (computerResult.word) {
@@ -100,7 +150,7 @@ async function submitWordKo() {
                     computerItem.textContent = `컴퓨터: ${computerWord}`;
                     document.getElementById('history').appendChild(computerItem);
 
-                    history_ko.push(computerWord);  // history_ko에 추가
+                    history_ko.push(computerWord); // history_ko에 추가
                     exchangeCount++;
                     document.getElementById('exchange-count').textContent = exchangeCount;
 
@@ -109,10 +159,14 @@ async function submitWordKo() {
             }
         } else {
             invalidAttempts++;
+            message = '유효하지 않은 단어입니다!';
+            speakMessage = message;
+
             document.getElementById('error-count').textContent = invalidAttempts;
-            document.getElementById('result').textContent =
-                result.error || '유효하지 않은 단어입니다!';
-            document.getElementById('result').style.color = 'red';
+
+            // 메시지와 음성 출력
+            await displayMessageAndSpeak(message, speakMessage, 'red');
+
             if (invalidAttempts >= 3) {
                 await speakText("게임이 종료되었습니다. 다시 시작하려면 엔터, 종료하려면 ESC를 누르세요.", 'ko-KR');
                 document.getElementById('result').textContent =
@@ -136,6 +190,8 @@ async function submitWordKo() {
         document.getElementById('user-word').value = ''; // 입력 필드 초기화
     }
 }
+
+
 
 
 const rate = 1.5; // 음성 속도 설정
@@ -250,7 +306,7 @@ async function submitWordEn() {
             document.getElementById('error-count-en').textContent = invalidAttemptsEn; // 틀린 횟수 UI 업데이트
             document.getElementById('result-en').textContent = message;
             document.getElementById('result-en').style.color = 'red';
-            await speakText(message, 'en-US'); // 음성 출력
+            // await speakText(message, 'en-US'); // 음성 출력
             if (invalidAttemptsEn >= 3) {
                 window.speechSynthesis.cancel();
                 const gameOverMessage = 'Game over. Press Enter to restart - or E-s-c to quit';
@@ -582,7 +638,7 @@ const englishGameItems = [
 let englishGameIndex = 0; // 현재 선택된 영어 끝말잇기 항목 인덱스
 
 
-let isSpeaking = false; // 음성 출력 중 여부 플래그
+
 
 // 단어 입력창 포커스 (한국어)
 function focusInput() {

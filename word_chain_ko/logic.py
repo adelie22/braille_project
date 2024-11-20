@@ -4,9 +4,9 @@ import random
 from word_chain_ko.utils import is_valid_korean_word, fetch_nouns_from_api 
 #decompose_korean_letter
 
-history = []
+history_ko = []
 #blacklist = ['즘', '틱', '늄', '슘', '퓸', '늬', '뺌', '섯', '숍', '튼', '름', '늠', '쁨']
-def check_word_validity(word, history):
+def check_word_validity(word, history_ko):
     """
     사용자가 입력한 단어의 유효성을 검사하고,
     각 상황에 맞는 주의문구를 음성으로 출력합니다.
@@ -15,39 +15,39 @@ def check_word_validity(word, history):
 
     # 단어 길이 검사
     if len(word) < 2:
-        error_message = "단어는 2글자 이상이어야 합니다."
+        # error_message = "단어는 2글자 이상이어야 합니다."
         print(f"Invalid word: {error_message}")
         return False, error_message
 
     # 첫 번째 입력 처리
-    if not history:
+    if not history_ko:
         print("DEBUG: First word. Performing dictionary validation.")
         if not is_valid_korean_word(word):  # 사전 유효성 검사 추가
-            error_message = "단어가 사전에 존재하지 않습니다."
+            # error_message = "단어가 사전에 존재하지 않습니다."
             print(f"Invalid word: {error_message}")
 
             return False, error_message
         return True, None  # 유효하면 통과
 
     # 끝말잇기 규칙 확인: 이전 단어의 마지막 글자와 현재 단어의 첫 글자 (두음법칙 적용)
-    last_word = history[-1]
+    last_word = history_ko[-1]
     last_char = apply_duum_law(last_word[-1])  # 컴퓨터 단어 마지막 글자에 두음법칙 적용
     if last_char != word[0]:  # 사용자의 단어 첫 글자와 비교
-        error_message = f"단어는 '{last_char}'으로 시작해야 합니다."
+        # error_message = f"단어는 '{last_char}'으로 시작해야 합니다."
         print(f"Invalid word: {error_message}")
-        return False, error_message
+        return False #, error_message
 
     # 단어 중복 검사
-    if word in history:
-        error_message = "이미 사용된 단어입니다."
+    if word in history_ko:
+        # error_message = "이미 사용된 단어입니다."
         print(f"Invalid word: {error_message}")
-        return False, error_message
+        return False#, error_message
 
     # 단어 유효성 검사
     if not is_valid_korean_word(word):
         error_message = "단어가 사전에 존재하지 않습니다."
-        print(f"Invalid word: {error_message}")
-        return False, error_message
+        # print(f"Invalid word: {error_message}")
+        # return False #, error_message
 
     # 유효한 단어일 경우
     return True, None
@@ -90,16 +90,16 @@ def apply_duum_law(full_letter):
 
 
 
-def generate_next_word(history):
+def generate_next_word(history_ko):
     """
     사용자의 입력을 기반으로 컴퓨터의 다음 단어를 생성합니다.
     두음법칙을 우선 적용하여 API에서 단어를 검색하고 선택합니다.
     """
-    if not history:
+    if not history_ko:
         print("DEBUG: History is empty. No word to generate next word from.")
         return None  # 사용자가 입력한 단어가 없을 경우
 
-    last_word = history[-1]  # 사용자가 마지막으로 입력한 단어
+    last_word = history_ko[-1]  # 사용자가 마지막으로 입력한 단어
     last_char = last_word[-1]  # 마지막 글자 추출
 
     # print(f"DEBUG: Last word in history: {last_word}")
@@ -142,7 +142,7 @@ def generate_next_word(history):
 
 
 if __name__ == "__main__":
-    history = ["사과", "라면"]  # 입력된 단어 기록
-    next_word = generate_next_word(history)  # 다음 단어 생성
+    history_ko = ["사과", "라면"]  # 입력된 단어 기록
+    next_word = generate_next_word(history_ko)  # 다음 단어 생성
     print(f"Next word: {next_word}")
 

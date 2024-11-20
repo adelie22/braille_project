@@ -47,7 +47,7 @@ def reset_word_chain_ko():
     """초기화: 한국어 끝말잇기 전역 상태"""
     global history_ko
     history_ko = []  # 한국어 전역 기록 초기화
-    return jsonify({"message": "Korean Word Chain has been reset", "history": history})
+    return jsonify({"message": "Korean Word Chain has been reset", "history": history_ko})
 
 @app.route('/word_chain_en/reset', methods=['POST'])
 def reset_word_chain_en():
