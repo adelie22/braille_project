@@ -7,9 +7,9 @@ word_chain_api = Blueprint('word_chain_api', __name__)
 
 @word_chain_api.route('/word_chain/check_word', methods=['POST'])
 def check_word():
-    history = current_app.config.setdefault('HISTORY', [])  # 서버 전역 history 가져오기
+    history_ko = current_app.config.setdefault('HISTORY', [])  # 서버 전역 history 가져오기
 
-    print(f"Server history (before validation): {history}")
+    print(f"Server history (before validation): {history_ko}")
 
     try:
         data = request.json
@@ -18,15 +18,15 @@ def check_word():
             return jsonify({"error": "Word is required"}), 400
 
         # 유효성 검사: 항상 history의 마지막 단어를 기준으로 확인
-        is_valid, error_message = check_word_validity(word, history)
+        is_valid, error_message = check_word_validity(word, history_ko)
         if not is_valid:
             return jsonify({"error": error_message}), 400
 
         # 유효한 단어인 경우, history에 추가
-        history.append(word)
-        print(f"Server history (after validation): {history}")
+        history_ko.append(word)
+        print(f"Server history (after validation): {history_ko}")
 
-        return jsonify({"message": "Valid word", "history": history}), 200
+        return jsonify({"message": "Valid word", "history": history_ko}), 200
 
     except Exception as e:
         print(f"Error during word validation: {e}")
@@ -42,15 +42,15 @@ def check_word():
 def generate_word():
     try:
         # 서버의 history 가져오기
-        history = current_app.config.setdefault('HISTORY', [])
+        history_ko = current_app.config.setdefault('HISTORY', [])
         # print(f"DEBUG: Server history before generating word: {history}")
 
         # 다음 단어 생성
-        next_word = generate_next_word(history)
+        next_word = generate_next_word(history_ko)
 
         if next_word:
             # 컴퓨터 단어를 history에 추가
-            history.append(next_word)
+            history_ko.append(next_word)
             # print(f"DEBUG: Server history after generating word: {history}")
             return jsonify({"word": next_word}), 200
         else:
@@ -65,7 +65,7 @@ def generate_word():
 @word_chain_api.route('/word_chain/reset', methods=['POST'])
 def reset_game():
     # Flask의 current_app.config로 history 초기화
-    history = current_app.config.setdefault('HISTORY', [])
-    history.clear()  # 기록 초기화
-    print('Server-side history after reset:', history)
+    history_ko = current_app.config.setdefault('HISTORY', [])
+    history_ko.clear()  # 기록 초기화
+    print('Server-side history after reset:', history_ko)
     return jsonify({"message": "게임이 재시작되었습니다."}), 200

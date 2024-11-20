@@ -1,21 +1,20 @@
 #끝말잇기 알고리즘(단어 검색, 두음법칙, 유효성 검사)
 import hgtk
 import random
-from word_chain_ko.utils import is_valid_korean_word, fetch_nouns_from_api 
-#decompose_korean_letter
+from word_chain_ko.utils import is_valid_korean_word, fetch_nouns_from_api  # 필요한 유틸리티 가져오기
 
 history_ko = []
-#blacklist = ['즘', '틱', '늄', '슘', '퓸', '늬', '뺌', '섯', '숍', '튼', '름', '늠', '쁨']
+
 def check_word_validity(word, history_ko):
     """
     사용자가 입력한 단어의 유효성을 검사하고,
-    각 상황에 맞는 주의문구를 음성으로 출력합니다.
+    각 상황에 맞는 주의문구를 출력합니다.
     """
     print(f"Validating word: {word}")
 
     # 단어 길이 검사
     if len(word) < 2:
-        # error_message = "단어는 2글자 이상이어야 합니다."
+        error_message = "단어는 2글자 이상이어야 합니다."
         print(f"Invalid word: {error_message}")
         return False, error_message
 
@@ -23,9 +22,8 @@ def check_word_validity(word, history_ko):
     if not history_ko:
         print("DEBUG: First word. Performing dictionary validation.")
         if not is_valid_korean_word(word):  # 사전 유효성 검사 추가
-            # error_message = "단어가 사전에 존재하지 않습니다."
+            error_message = "단어가 사전에 존재하지 않습니다."
             print(f"Invalid word: {error_message}")
-
             return False, error_message
         return True, None  # 유효하면 통과
 
@@ -33,24 +31,25 @@ def check_word_validity(word, history_ko):
     last_word = history_ko[-1]
     last_char = apply_duum_law(last_word[-1])  # 컴퓨터 단어 마지막 글자에 두음법칙 적용
     if last_char != word[0]:  # 사용자의 단어 첫 글자와 비교
-        # error_message = f"단어는 '{last_char}'으로 시작해야 합니다."
+        error_message = f"단어는 '{last_char}'으로 시작해야 합니다."
         print(f"Invalid word: {error_message}")
-        return False #, error_message
+        return False, error_message
 
     # 단어 중복 검사
     if word in history_ko:
-        # error_message = "이미 사용된 단어입니다."
+        error_message = "이미 사용된 단어입니다."
         print(f"Invalid word: {error_message}")
-        return False#, error_message
+        return False, error_message
 
     # 단어 유효성 검사
     if not is_valid_korean_word(word):
         error_message = "단어가 사전에 존재하지 않습니다."
-        # print(f"Invalid word: {error_message}")
-        # return False #, error_message
+        print(f"Invalid word: {error_message}")
+        return False, error_message
 
     # 유효한 단어일 경우
-    return True, None
+    return True, None  # 유효한 단어라면 True 반환
+
 
 
 

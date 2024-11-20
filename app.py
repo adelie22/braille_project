@@ -27,13 +27,13 @@ app.register_blueprint(word_chain_api)  # 한국어 끝말잇기 API 등록
 app.register_blueprint(word_chain_en_api)  # 영어 끝말잇기 API 등록
 
 # Error handlers
-@app.errorhandler(404)
-def not_found_error(error):
-    return jsonify({"error": "Not found"}), 404
+# @app.errorhandler(404)
+# def not_found_error(error):
+#     return jsonify({"error": "Not found"}), 404
 
-@app.errorhandler(500)
-def internal_error(error):
-    return jsonify({"error": "Internal server error"}), 500
+# @app.errorhandler(500)
+# def internal_error(error):
+#     return jsonify({"error": "Internal server error"}), 500
 
 # Route for rendering the HTML page
 @app.route('/word_chain')
