@@ -89,7 +89,7 @@
 <div id="word-chain-game" class="hidden">
     <h1>끝말잇기 게임</h1>
     <input type="text" id="user-word" placeholder="단어 입력">
-    <button id="back-to-menu-ko">뒤로가기</button> <!-- 뒤로가기 버튼 -->
+    <button id="back-to-menu-ko" type="button">뒤로가기</button> <!-- 뒤로가기 버튼 -->
     <p id="result"></p>
     <div>
         <p><strong>현재 주고받은 횟수:</strong> <span id="exchange-count">0</span></p>
@@ -103,7 +103,7 @@
 <div id="word-chain-game-en" class="hidden">
     <h1>Word Chain Game</h1>
     <input type="text" id="user-word-en" placeholder="Enter a word">
-    <button id="back-to-menu-en">Back to Menu</button> <!-- 뒤로가기 버튼 -->
+    <button id="back-to-menu-en" type="button">Back to Menu</button> <!-- 뒤로가기 버튼 -->
     <p id="result-en"></p>
     <div>
         <p><strong>Turns Taken:</strong> <span id="exchange-count-en">0</span></p>
@@ -127,6 +127,8 @@
             document.getElementById('language-selection').classList.add('hidden');
             document.getElementById('word-chain-game-en').classList.remove('hidden');
         });
+
+
     </script>
 
     <!-- JS 파일 로드 -->

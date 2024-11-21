@@ -3,8 +3,6 @@ import hgtk
 import random
 from word_chain_ko.utils import is_valid_korean_word, fetch_nouns_from_api  # 필요한 유틸리티 가져오기
 
-history_ko = []
-
 def check_word_validity(word, history_ko):
     """
     사용자가 입력한 단어의 유효성을 검사하고,

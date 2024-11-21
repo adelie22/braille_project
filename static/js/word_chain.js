@@ -10,6 +10,7 @@ let exchangeCountEn = 0; // 영어 끝말잇기 주고받은 횟수
 let isSubmittingKo = false;
 let isSubmittingEn = false;
 let isSpeaking = false; // 음성 출력 상태를 관리하는 플래그 변수
+let back = false;
 
 // 음성 출력 함수
 function speakText(text, lang = 'ko-KR') {
@@ -166,7 +167,7 @@ async function submitWordKo() {
 
 // 🟨 영어 단어 제출 로직
 async function submitWordEn() {
-    if (isSubmittingEn) return; // 중복 제출 방지
+    if (isSubmittingEn || back) return; // 중복 제출 방지
     isSubmittingEn = true;
 
     const word = document.getElementById('user-word-en').value.trim();
@@ -305,18 +306,19 @@ async function submitWordEn() {
 }
 
 
-// 단어 입력창에서 엔터키 동작 제어 (영어)(이 코드없으면 영어 엔터키 작동 안함)
+// 단어 입력창에서 엔터키 동작 제어 ((영어)(이 코드없으면 영어 엔터키 작동 안함))
 document.getElementById('user-word-en').addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
         event.preventDefault(); // 기본 엔터 동작 방지
         if (!isSubmittingEn) {
+            back = false;
             submitWordEn(); // 직접 호출
         }
     }
 });
 
 
-// 단어 입력창에서 엔터키 동작 제어 (영어)(이 코드없으면 영어 엔터키 작동 안함)
+// 단어 입력창에서 엔터키 동작 제어 (한국어)
 document.getElementById('user-word').addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
         event.preventDefault(); // 기본 엔터 동작 방지
@@ -361,13 +363,37 @@ function resetGame() {
         });
 }
 
-// document.getElementById('user-word').addEventListener('keydown', (event) => {
-//     if (event.key === 'Enter') {
-//         event.preventDefault();
-//         submitWordKo();
-//     }
-// });
 
+function resetGame2() {
+    fetch('/word_chain/reset', { method: 'POST' }) // 서버에 한국어 끝말잇기 초기화 요청
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to reset the Korean game on the server');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(data.message); // 초기화 성공 메시지 확인
+            console.log('Server-side history:', data.history); // 서버 초기화 후 상태
+
+            // 🟨 클라이언트 측 초기화 - 서버에서 받은 초기화된 상태로 갱신
+            history_ko = []; // 서버에서 초기화된 history 사용
+            invalidAttempts = 0; // 시도 횟수 초기화
+            exchangeCount = 0; // 주고받은 횟수 초기화
+
+            // 🟨 UI 초기화
+            document.getElementById('history').innerHTML = ''; // 히스토리 UI 초기화
+            document.getElementById('result').textContent = '게임이 초기화되었습니다. 새로 시작하세요!';
+            document.getElementById('result').style.color = 'green';
+            document.getElementById('exchange-count').textContent = exchangeCount; // 교환 횟수 UI 업데이트
+            document.getElementById('error-count').textContent = invalidAttempts; // 오류 횟수 UI 업데이트
+            document.getElementById('user-word').value = ''; // 입력 필드 초기화
+        })
+        .catch(error => {
+            console.error('Error resetting the Korean game:', error);
+            alert('게임 초기화 중 오류가 발생했습니다.');
+        });
+}
 
 // 🟨 영어 끝말잇기 초기화 함수
 function resetGameEn() {
@@ -400,7 +426,40 @@ function resetGameEn() {
             console.error('Error resetting the English game:', error);
             alert('Error resetting the English game.');
         });
-    
+
+}
+
+
+function resetGameEn2() {
+    fetch('/word_chain_en/reset', { method: 'POST' }) // 영어 끝말잇기 초기화 API 호출
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to reset the English game on the server');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log(data.message); // 초기화 성공 메시지 확인
+            console.log('Server-side history:', data.history); // 서버 초기화 후 상태
+
+            // 🟨 클라이언트 측 초기화
+            history = [];
+            invalidAttemptsEn = 0;
+            exchangeCountEn = 0;
+
+            // 🟨 UI 초기화
+            document.getElementById('history-en').innerHTML = '';
+            document.getElementById('result-en').textContent = 'Game has been reset. Start again!';
+            document.getElementById('result-en').style.color = 'green';
+            document.getElementById('exchange-count-en').textContent = exchangeCountEn;
+            document.getElementById('error-count-en').textContent = invalidAttemptsEn;
+            document.getElementById('user-word-en').value = ''; // 입력 필드 초기화
+        })
+        .catch(error => {
+            console.error('Error resetting the English game:', error);
+            alert('Error resetting the English game.');
+        });
+
 }
 
 // document.getElementById('user-word-en').addEventListener('keydown', (event) => {
@@ -418,10 +477,10 @@ function resetGameEn() {
 
 let isResetting = false; // 중복 요청 방지 플래그
 
-// 한국어 끝말잇기 뒤로가기
+// 한국어 끝말잇기 뒤로가기 버튼 클릭 이벤트
 document.getElementById('back-to-menu-ko').addEventListener('click', async () => {
     if (isResetting) return; // 진행 중인 요청이 있으면 종료
-    isResetting = true;
+    isResetting = true; // 초기화 시작
 
     try {
         const response = await fetch('/word_chain/reset', { method: 'POST' });
@@ -433,6 +492,7 @@ document.getElementById('back-to-menu-ko').addEventListener('click', async () =>
         // 데이터 및 UI 초기화
         history_ko = [];
         invalidAttempts = 0;
+        exchangeCount = 0;
         document.getElementById('history').innerHTML = '';
         document.getElementById('result').textContent = '';
         document.getElementById('user-word').value = '';
@@ -456,11 +516,29 @@ document.getElementById('back-to-menu-ko').addEventListener('click', async () =>
     }
 });
 
+
+document.getElementById('back-to-menu-ko').addEventListener('keydown', async (event) => {
+    try {
+        await resetGame2(); // 기존 resetGameEn 함수 호출
+        // 화면 전환 및 UI 초기화
+        document.getElementById('word-chain-game').classList.add('hidden');
+        document.getElementById('language-selection').classList.remove('hidden');
+        currentIndex = 0; // 커서를 첫 번째 메뉴로 초기화
+        highlightMenu(currentIndex); // 초기화된 커서 강조 표시
+        speakText(menuItems[currentIndex].voice); // 초기화된 메뉴 음성 출력
+    } catch (error) {
+        console.error('Error resetting the game:', error);
+        alert('Error resetting the game.');
+    }
+});
+
 // 영어 끝말잇기 뒤로가기
 document.getElementById('back-to-menu-en').addEventListener('click', async () => {
     if (isResetting) return; // 진행 중인 요청이 있으면 종료
-    isResetting = true;
-
+    {
+        back = true;
+        isResetting = true;
+    }
     try {
         const response = await fetch('/word_chain_en/reset', { method: 'POST' });
         if (!response.ok) {
@@ -485,7 +563,7 @@ document.getElementById('back-to-menu-en').addEventListener('click', async () =>
         currentIndex = 0;
         inLanguageSelection = true; // 언어 선택 화면 활성화
         highlightMenu(currentIndex);
-        speakText(menuItems[currentIndex].voice);
+        // speakText(menuItems[currentIndex].voice);
     } catch (error) {
         console.error('Error resetting the game:', error);
         alert('Error resetting the game.');
@@ -493,15 +571,15 @@ document.getElementById('back-to-menu-en').addEventListener('click', async () =>
         isResetting = false; // 요청 완료 후 플래그 해제
     }
 });
-document.getElementById('back-to-menu-en').addEventListener('click', async () => {
+document.getElementById('back-to-menu-en').addEventListener('keydown', async (event) => {
     try {
-        await resetGameEn(); // 기존 resetGameEn 함수 호출
+        await resetGameEn2(); // 기존 resetGameEn 함수 호출
         // 화면 전환 및 UI 초기화
         document.getElementById('word-chain-game-en').classList.add('hidden');
         document.getElementById('language-selection').classList.remove('hidden');
         currentIndex = 0; // 커서를 첫 번째 메뉴로 초기화
         highlightMenu(currentIndex); // 초기화된 커서 강조 표시
-        speakText(menuItems[currentIndex].voice); // 초기화된 메뉴 음성 출력
+        speakText(menuItems[currentIndex].voice); // 초기화된 메뉴 음성 출력(한국어 라는 음성 출력)
     } catch (error) {
         console.error('Error resetting the game:', error);
         alert('Error resetting the game.');
@@ -614,7 +692,7 @@ function focusInput() {
     if (document.activeElement !== inputField) {
         inputField.focus();
         if (!isSpeaking) { // 음성이 이미 출력 중이 아니라면
-            speakText('단어를 입력하세요.', 'ko-KR');
+            // speakText('단어를 입력하세요.', 'ko-KR');
         }
     }
 }
@@ -625,7 +703,7 @@ function focusInputEn() {
     if (document.activeElement !== inputField) {
         inputField.focus();
         if (!isSpeaking) { // 음성이 이미 출력 중이 아니라면
-            speakText('Enter a word.', 'en-US');
+            // speakText('Enter a word.', 'en-US');
         }
     }
 }
