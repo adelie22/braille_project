@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diary Entries</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #000000;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th.date-column,
+        td.date-column {
+            width: 150px; /* 원하는 너비로 설정하세요 */
+        }
+
+        th {
+            background-color: #f4f4f4;
+            font-size: 18px;
+        }
+
+        td {
+            font-size: 16px;
+        }
+
+        .highlight {
+            background-color: rgb(255, 255, 107);
+        }
+
+        #popup,
+        #save-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgb(255, 255, 255);
+            border: 2px solid #ddd;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        #popup button,
+        #save-popup button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+
+        .popup-button {
+            border: 2px solid #000000;
+            background-color: #f4f4f4;
+        }
+
+        .popup-button.highlight {
+            background-color: rgb(255, 255, 107);
+            color: white;
+        }
+
+        #action-buttons {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #create-entry {
+            display: none;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        #create-entry textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #000000;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>다이어리 목록</h1>
+
+    <div id="action-buttons">
+        <button id="create-button" tabindex="0">작성</button>
+        <button id="back-button" tabindex="0" aria-label="뒤로가기 버튼">뒤로가기</button>
+
+    </div>
+
+    <div id="create-entry">
+        <textarea id="new-content" placeholder="새로운 다이어리를 작성하세요..."></textarea>
+    </div>
+
+    <table id="diary-table">
+        <thead>
+            <tr>
+                <th class="date-column">날짜</th>
+                <th>내용</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in entries %}
+            <tr class="diary-entry" tabindex="0" data-id="{{ entry.id }}" data-date="{{ entry.date }}">
+                <td class="date-column">{{ entry.date }}</td>
+                <td class="content">{{ entry.content[:50] }}...</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+    <div id="popup">
+        <p>다이어리를 삭제하겠습니까?</p>
+        <button class="popup-button" id="delete-button">삭제</button>
+        <button class="popup-button" id="cancel-button">취소</button>
+    </div>
+
+    <div id="save-popup">
+        <p>다이어리를 저장하시겠습니까?</p>
+        <button class="popup-button" id="confirm-save-button">저장</button>
+        <button class="popup-button" id="cancel-save-button">취소</button>
+    </div>
+
+    <!-- 스크립트 시작 -->
+<script>
+    let diaryEntries;
+    const createButton = document.getElementById('create-button');
+    const backButton = document.getElementById('back-button'); 
+    let currentIndex = 0; // 시작 시 작성 버튼을 가리킴
+    let isCreating = false;
+    let navigableItems;
+
+
+        // '뒤로가기' 버튼에 클릭 이벤트 핸들러 추가
+        backButton.addEventListener('click', () => {
+            window.location.href = 'https://www.google.com/'; // 
+        });
+
+
+    // navigableItems와 diaryEntries 업데이트 함수
+    function updateNavigableItems() {
+            diaryEntries = document.querySelectorAll('.diary-entry');
+            navigableItems = [createButton, backButton, ...Array.from(diaryEntries)];
+        }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        updateNavigableItems();
+
+      // 첫 번째 항목에 하이라이트 적용 및 음성 출력
+        navigableItems[currentIndex].classList.add('highlight');
+        if (navigableItems[currentIndex] === createButton) {
+            speakMessage('작성 버튼');
+        } else if (navigableItems[currentIndex] === backButton) {
+            speakMessage('뒤로가기 버튼');
+        } else {
+            speakDate(navigableItems[currentIndex]);
+        }
+
+        // 방향키로 항목 이동 이벤트 등록
+        document.addEventListener('keydown', handleNavigation);
+    });
+
+    // 작성 버튼 클릭 핸들러
+        const newContentField = document.getElementById('new-content');
+        createButton.addEventListener('click', () => {
+            // e.preventDefault();
+            speakMessage('새로운 다이어리를 작성하세요.');
+            const createEntry = document.getElementById('create-entry');
+            createEntry.style.display = 'block';
+            newContentField.focus();
+            isCreating = true;
+
+            // 입력 필드에서 키 이벤트 핸들러 추가
+            newContentField.addEventListener('keydown', handleInputFieldEscape);
+            newContentField.addEventListener('keydown', handleCursorMovement);
+            newContentField.addEventListener('keydown', handleNewContentFieldKeydown);
+        });
+
+  // 입력 중 음성 출력 핸들러
+    function handleNewContentFieldKeydown(e) {
+            if (e.key === ' ') {
+                const words = newContentField.value.trim().split(' ');
+                const lastWord = words[words.length - 1];
+                speakMessage(lastWord);
+            } else if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault(); // 기본 동작 방지
+                openSavePopup();
+            }
+        }
+
+        newContentField.addEventListener('keydown', handleNewContentFieldKeydown);
+
+
+    function handleInputFieldEscape(e) {
+         if (e.key === 'Escape' || (e.key === 'Backspace' && e.ctrlKey)) {
+            // 입력 필드를 닫고 페이지를 새로고침하여 기존 기능을 복원
+            window.location.reload();
+        }
+    }
+
+      // **커서 이동 시 글자 음성 출력 핸들러 추가**
+       function handleCursorMovement(e) {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Home' || e.key === 'End') {
+                setTimeout(() => {
+                    let cursorPosition = newContentField.selectionStart;
+                    let text = newContentField.value;
+                    if (cursorPosition < text.length) {
+                        let character = text[cursorPosition];
+                        speakMessage(character);
+                    } else if (cursorPosition > 0 && cursorPosition === text.length) {
+                        // 커서가 텍스트의 마지막에 있을 때 이전 글자를 읽어줌
+                        let character = text[cursorPosition - 1];
+                        speakMessage(character);
+                    }
+                }, 0); // 약간의 지연 시간을 두어 커서 위치 업데이트 후 실행
+            }
+        }
+
+        // 저장 팝업 열기 함수
+       function openSavePopup() {
+            window.speechSynthesis.cancel();
+            speakMessage('다이어리를 저장하시겠습니까?');
+            document.getElementById('save-popup').style.display = 'block';
+
+            // 입력 필드에서 키 입력 차단
+            newContentField.removeEventListener('keydown', handleInputFieldEscape);
+            newContentField.removeEventListener('keydown', handleCursorMovement);
+            newContentField.removeEventListener('keydown', handleNewContentFieldKeydown);
+
+            let savePopupButtons = document.querySelectorAll('#save-popup .popup-button');
+            let savePopupIndex = 0;
+            savePopupButtons[savePopupIndex].classList.add('highlight');
+            speakMessage(savePopupButtons[savePopupIndex].innerText);
+
+            // 이벤트 리스너 등록을 지연시킴
+            setTimeout(() => {
+                document.addEventListener('keydown', handleSavePopupNavigation);
+            }, 100);
+        }
+
+
+        // 저장 팝업 내 키 입력 핸들러 함수
+        function handleSavePopupNavigation(e) {
+            e.preventDefault();
+            const savePopupButtons = document.querySelectorAll('#save-popup .popup-button');
+            let savePopupIndex = Array.from(savePopupButtons).findIndex(button => button.classList.contains('highlight'));
+
+            if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                savePopupButtons[savePopupIndex].classList.remove('highlight');
+                if (e.key === 'ArrowRight') {
+                    savePopupIndex = (savePopupIndex + 1) % savePopupButtons.length;
+                } else if (e.key === 'ArrowLeft') {
+                    savePopupIndex = (savePopupIndex - 1 + savePopupButtons.length) % savePopupButtons.length;
+                }
+                savePopupButtons[savePopupIndex].classList.add('highlight');
+                speakMessage(savePopupButtons[savePopupIndex].innerText);
+            } else if (e.key === 'Enter') {
+                if (savePopupButtons[savePopupIndex].id === 'confirm-save-button') {
+                    saveDiary();
+                } else {
+                    closeSavePopup();
+                }
+                document.removeEventListener('keydown', handleSavePopupNavigation);
+            } else if (e.key === 'Escape') {
+                closeSavePopup();
+                document.removeEventListener('keydown', handleSavePopupNavigation);
+            }
+        }
+
+        // 저장 팝업 닫기 함수
+     function closeSavePopup() {
+            window.speechSynthesis.cancel();
+            document.getElementById('save-popup').style.display = 'none';
+            let savePopupButtons = document.querySelectorAll('#save-popup .popup-button');
+            savePopupButtons.forEach(button => button.classList.remove('highlight'));
+
+            // 입력 필드에서 키 이벤트 핸들러 다시 추가
+            newContentField.addEventListener('keydown', handleInputFieldEscape);
+            newContentField.addEventListener('keydown', handleCursorMovement);
+            newContentField.addEventListener('keydown', handleNewContentFieldKeydown);
+        }
+
+        function saveDiary() {
+            const currentDate = new Date().toISOString().split('T')[0];
+            const newContent = newContentField.value;
+
+            if (newContent) {
+                fetch('/diary/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        date: currentDate,
+                        content: newContent
+                    })
+                }).then(response => {
+                    if (response.ok) {
+                        window.location.reload();
+                        // 또는 페이지를 새로고침하지 않고 DOM을 업데이트한 경우:
+                        // updateNavigableItems();
+                    } else {
+                        alert('다이어리를 작성하는 중 오류가 발생했습니다. 다시 시도해 주세요.');
+                    }
+                }).catch(error => {
+                    console.error('다이어리 작성 중 오류 발생:', error);
+                    alert('다이어리 작성 중 오류가 발생했습니다. 다시 시도해 주세요.');
+                });
+            }
+        }
+
+        // 첫 번째 항목에 하이라이트 적용 및 음성 출력
+            navigableItems[currentIndex].classList.add('highlight');
+            if (navigableItems[currentIndex] === createButton) {
+                speakMessage('작성 버튼');
+            } else if (navigableItems[currentIndex] === backButton) {
+                speakMessage('뒤로가기 버튼');
+            } else {
+                speakDate(navigableItems[currentIndex]);
+            }
+
+        // 방향키로 항목 이동 이벤트 등록
+        document.addEventListener('keydown', handleNavigation);
+
+        function handleNavigation(e) {
+            if (isCreating) return;
+
+            // 기본 동작 방지
+            e.preventDefault();
+
+            // 현재 하이라이트 제거
+            navigableItems[currentIndex].classList.remove('highlight');
+
+            if (e.key === 'ArrowDown') {
+                currentIndex = (currentIndex + 1) % navigableItems.length;
+            } else if (e.key === 'ArrowUp') {
+                currentIndex = (currentIndex - 1 + navigableItems.length) % navigableItems.length;
+            } else if (e.key === 'Enter') {
+                if (navigableItems[currentIndex] === createButton) {
+                    createButton.click();
+                } else if (navigableItems[currentIndex] === backButton) {
+                    backButton.click();
+                } else {
+                    const selectedItem = navigableItems[currentIndex];
+                    const selectedId = selectedItem.getAttribute('data-id');
+                    window.location.href = `/diary/content/${selectedId}`;
+                }
+                return;
+                } else if (e.key === 'Backspace' && navigableItems[currentIndex] !== createButton && e.ctrlKey) {
+                    openPopup();
+                    return;
+                }
+
+                navigableItems[currentIndex].classList.add('highlight');
+                navigableItems[currentIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+               if (navigableItems[currentIndex] === createButton) {
+                speakMessage('작성 버튼');
+                } else if (navigableItems[currentIndex] === backButton) {
+                    speakMessage('뒤로가기 버튼');
+                } else {
+                    speakDate(navigableItems[currentIndex]);
+                }
+            }
+
+        // 삭제 팝업 열기 함수
+        function openPopup() {
+            window.speechSynthesis.cancel();
+            speakMessage('다이어리를 삭제하겠습니까?');
+            document.getElementById('popup').style.display = 'block';
+
+            // 일반 키 입력 차단
+            document.removeEventListener('keydown', handleNavigation);
+
+            let popupButtons = document.querySelectorAll('#popup .popup-button');
+            let popupIndex = 0;
+            popupButtons[popupIndex].classList.add('highlight');
+            speakMessage(popupButtons[popupIndex].innerText);
+
+            setTimeout(() => {
+                document.addEventListener('keydown', handlePopupNavigation);
+            }, 100);
+
+            // 현재 선택된 다이어리 ID 저장
+            const selectedId = navigableItems[currentIndex].getAttribute('data-id');
+            document.getElementById('delete-button').dataset.id = selectedId;
+        }
+
+        // 삭제 팝업 내 키 입력 핸들러 함수
+        function handlePopupNavigation(e) {
+            e.preventDefault();
+            const popupButtons = document.querySelectorAll('#popup .popup-button');
+            let popupIndex = Array.from(popupButtons).findIndex(button => button.classList.contains('highlight'));
+
+            if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                popupButtons[popupIndex].classList.remove('highlight');
+                if (e.key === 'ArrowRight') {
+                    popupIndex = (popupIndex + 1) % popupButtons.length;
+                } else if (e.key === 'ArrowLeft') {
+                    popupIndex = (popupIndex - 1 + popupButtons.length) % popupButtons.length;
+                }
+                popupButtons[popupIndex].classList.add('highlight');
+                speakMessage(popupButtons[popupIndex].innerText);
+            } else if (e.key === 'Enter') {
+                if (popupButtons[popupIndex].id === 'delete-button') {
+                    const id = document.getElementById('delete-button').dataset.id;
+                    deleteDiary(id);
+                } else {
+                    closePopup();
+                }
+                document.removeEventListener('keydown', handlePopupNavigation);
+            } else if (e.key === 'Escape') {
+                closePopup();
+                document.removeEventListener('keydown', handlePopupNavigation);
+            }
+        }
+
+        // 삭제 팝업 닫기 함수
+        function closePopup() {
+            window.speechSynthesis.cancel();
+            document.getElementById('popup').style.display = 'none';
+            let popupButtons = document.querySelectorAll('#popup .popup-button');
+            popupButtons.forEach(button => button.classList.remove('highlight'));
+
+            // 팝업이 닫히면 일반 키 입력을 다시 활성화하기 위해 이벤트 리스너 등록
+            document.removeEventListener('keydown', handlePopupNavigation);
+            document.addEventListener('keydown', handleNavigation);
+        }
+
+        // 다이어리 삭제 함수
+        function deleteDiary(id) {
+                fetch(`/diary/delete/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                }).then(response => {
+                    if (response.ok) {
+                        // 삭제된 항목을 DOM에서 제거
+                        const deletedItemIndex = navigableItems.findIndex(item => item.dataset && item.dataset.id == id);
+                        if (deletedItemIndex !== -1) {
+                            const deletedElement = navigableItems[deletedItemIndex];
+                            if (deletedElement && deletedElement.parentNode) {
+                                deletedElement.parentNode.removeChild(deletedElement);
+                            }
+
+                            // navigableItems 배열에서 제거
+                            navigableItems.splice(deletedItemIndex, 1);
+
+                            // currentIndex 조정
+                            if (currentIndex >= deletedItemIndex) {
+                                currentIndex = Math.max(0, currentIndex - 1);
+                            }
+                        } else {
+                            console.warn('삭제된 항목을 navigableItems에서 찾을 수 없습니다.');
+                        }
+
+                        // navigableItems와 diaryEntries 업데이트
+                        updateNavigableItems();
+
+                        // 하이라이트 초기화
+                        navigableItems.forEach(item => item.classList.remove('highlight'));
+
+                        // 다음 항목에 커서 위치
+                        if (navigableItems.length > 0) {
+                            if (currentIndex >= navigableItems.length) {
+                                currentIndex = navigableItems.length - 1;
+                            }
+                            navigableItems[currentIndex].classList.add('highlight');
+                            navigableItems[currentIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            if (navigableItems[currentIndex] === createButton) {
+                                speakMessage('작성 버튼');
+                            } else if (navigableItems[currentIndex] === backButton) {
+                                speakMessage('뒤로가기 버튼');
+                            } else {
+                                speakDate(navigableItems[currentIndex]);
+                            }
+                        } else {
+                            // 남은 항목이 없으면 작성 버튼에 커서 위치
+                            currentIndex = 0;
+                            createButton.classList.add('highlight');
+                            speakMessage('작성 버튼');
+                        }
+                        closePopup();
+                    } else {
+                        alert('삭제하는 중 오류가 발생했습니다.');
+                        closePopup();
+                    }
+                }).catch(error => {
+                    console.error('삭제 중 오류 발생:', error);
+                    alert('삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
+                    closePopup();
+                });
+            }
+
+
+
+        // 날짜를 음성으로 출력하는 함수
+       function speakDate(element) {
+            window.speechSynthesis.cancel();
+            const dateText = element.querySelector('.date-column').innerText;
+            const [year, month, day] = dateText.split('-');
+            const formattedDate = `${year}년 ${parseInt(month)}월 ${parseInt(day)}일`;
+            const speechText = `${formattedDate} 작성된 다이어리입니다.`;
+
+            setTimeout(() => {
+                const utterance = new SpeechSynthesisUtterance(speechText);
+                utterance.lang = 'ko-KR';
+                window.speechSynthesis.speak(utterance);
+            }, 100);
+        }
+
+
+       // 메시지를 음성으로 출력하는 함수
+        function speakMessage(message) {
+            window.speechSynthesis.cancel();
+            setTimeout(() => {
+                const utterance = new SpeechSynthesisUtterance(message);
+                utterance.lang = 'ko-KR';
+                window.speechSynthesis.speak(utterance);
+            }, 100);
+        }
+    </script>
+
+</body>
+
+</html>

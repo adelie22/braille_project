@@ -68,11 +68,6 @@ def fetch_nouns_from_api(starting_char, num_results=50):
         return []
 
 
-
-# def get_last_character(word):
-#     """단어의 마지막 글자를 반환"""
-#     return hgtk.text.decompose(word)[-1] if word else None
-
 def is_valid_korean_word(word):
     """
     국립국어원 API를 사용하여 한국어 단어의 유효성을 확인합니다.

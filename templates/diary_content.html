@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diary Entry - {{ date }}</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #000000;
+        }
+
+        .content {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            line-height: 1.8;
+            font-size: 16px;
+            color: #333;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        .highlight {
+            background-color: yellow;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>{{ date }}의 다이어리</h1>
+    <div class="content" id="diaryContent">
+        <!-- 다이어리 내용이 여기에 표시됩니다. -->
+        {{ content }}
+    </div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        let contentElement = document.getElementById('diaryContent');
+        let originalText = contentElement.innerText;  // 다이어리 텍스트 전체 가져오기
+        let currentIndex = 0;  // 현재 커서 위치
+        let isEditMode = false;  // 수정 모드 여부를 확인하기 위한 변수
+        const diaryId = "{{ id }}";  // 현재 다이어리의 ID 가져오기
+        let characters = []; // 문자 요소들을 담을 배열
+        let isSpeaking = false; // 현재 음성 출력 여부를 확인하기 위한 변수
+        let currentUtterance = null; // 현재 출력 중인 음성 객체를 추적하기 위한 변수
+        let speakingEndIndex = null; // 음성이 종료된 위치를 추적하기 위한 변수
+
+        // 새로운 입력/탐색 모드 음성 출력 함수
+        function speakModeChange(mode, callback = null) {
+            window.speechSynthesis.cancel();  // 기존 진행 중인 음성을 취소
+            setTimeout(() => {
+                const utterance = new SpeechSynthesisUtterance(mode);
+                utterance.lang = 'ko-KR';  // 한국어로 음성 출력
+                window.speechSynthesis.speak(utterance);
+
+                // 음성 출력 완료 후 콜백 실행
+                if (callback) {
+                    utterance.onend = callback;
+                }
+            }, 50);  // 약간의 지연 시간을 추가해 음성이 자연스럽게 출력되도록 조정
+        }
+
+        // 텍스트를 문자 단위로 스팬으로 감싸기
+        function wrapTextWithSpans(text) {
+            return [...text].map(char => `<span class="char">${char}</span>`).join('');
+        }
+
+        // 문자를 초기화하고, 첫 글자에 하이라이트를 적용하는 함수
+        function initializeCharacters() {
+            contentElement.innerHTML = wrapTextWithSpans(originalText);
+            characters = document.querySelectorAll('.char');
+
+            // 첫 글자에 하이라이트 적용
+            currentIndex = 0; // 탐색 모드 초기화
+            if (characters.length > 0) {
+                applyHighlight(currentIndex);
+            }
+        }
+
+        // 페이지 로드 시 초기화
+        initializeCharacters();
+
+        // 하이라이트 적용 함수
+        function applyHighlight(index) {
+            clearAllHighlights();
+            if (characters[index]) {
+                characters[index].classList.add('highlight');
+                characters[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // 모든 하이라이트 제거 함수
+        function clearAllHighlights() {
+            characters.forEach(char => char.classList.remove('highlight'));
+        }
+
+        // 방향키로 문자 이동 및 음성 출력
+        document.addEventListener('keydown', (e) => {
+            if (isEditMode) {
+                return;  // 수정 모드일 경우 방향키 동작을 차단
+            }
+
+            // Ctrl + Backspace 눌렀을 때 이전 화면으로 이동
+            if (e.key === 'Backspace' && e.ctrlKey) {
+                window.location.href = "/diary";  // 이전 화면인 다이어리 목록 화면으로 돌아감
+                return;  // 기본 동작 막기
+            }
+
+            // 현재 음성 출력 중이라면, 먼저 음성 중단 처리
+            if (isSpeaking && e.key !== 'Enter') {
+                window.speechSynthesis.cancel();
+                isSpeaking = false;
+            }
+
+            // 현재 하이라이트 제거
+            clearAllHighlights();
+
+            if (e.key === 'ArrowRight') {
+                if (currentIndex < characters.length - 1) {
+                    currentIndex++;
+                }
+            } else if (e.key === 'ArrowLeft') {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                }
+            } else if (e.key === 'ArrowDown') {
+                let nextLineIndex = getNextLineStartIndex(currentIndex, 1);
+                if (nextLineIndex !== -1) {
+                    currentIndex = nextLineIndex;
+                }
+            } else if (e.key === 'ArrowUp') {
+                let previousLineIndex = getNextLineStartIndex(currentIndex, -1);
+                if (previousLineIndex !== -1) {
+                    currentIndex = previousLineIndex;
+                }
+            } else if (e.key === 'Enter' && e.ctrlKey) {
+                // Ctrl + Enter를 눌러 수정 모드로 전환
+                if (!isEditMode) {
+                    enterEditMode(currentIndex);
+                }
+                return;  // 기본 동작 막기
+            } else if (e.key === 'Enter') {
+                if (isSpeaking) {
+                    // 음성 출력 중일 때 엔터 키가 눌리면 음성을 중단
+                    window.speechSynthesis.cancel();
+                    isSpeaking = false;
+
+                    // 음성 중단 후 마지막 읽은 위치에 커서와 하이라이트 적용
+                    if (speakingEndIndex !== null) {
+                        currentIndex = Math.min(speakingEndIndex, characters.length - 1);
+                        applyHighlight(currentIndex);
+                    }
+                } else {
+                    // 음성이 출력 중이 아닐 때 엔터 키가 눌리면 현재 위치부터 음성 출력
+                    speakTextFromIndex(currentIndex);
+                }
+                return;  // 기본 동작 막기
+            }
+
+            // 새로 하이라이트 적용
+            applyHighlight(currentIndex);
+            speakCharacter(characters[currentIndex].innerText);
+        });
+
+        // 글자를 음성으로 출력하는 함수
+        function speakCharacter(character) {
+            window.speechSynthesis.cancel();
+            setTimeout(() => {
+                const utterance = new SpeechSynthesisUtterance(character);
+                utterance.lang = 'ko-KR';
+                window.speechSynthesis.speak(utterance);
+            }, 100); // 약간의 지연 시간을 추가하여 음성이 자연스럽게 출력되도록 조정 (100ms)
+        }
+
+        // 현재 위치 이후 텍스트 전체를 음성으로 출력하는 함수
+        function speakTextFromIndex(index) {
+            window.speechSynthesis.cancel();  // 음성을 중단하고 새로운 음성 출력 시작
+
+            let remainingText = '';
+            for (let i = index; i < characters.length; i++) {
+                remainingText += characters[i].innerText;
+            }
+
+            const utterance = new SpeechSynthesisUtterance(remainingText);
+            utterance.lang = 'ko-KR';
+            isSpeaking = true;
+            currentUtterance = utterance;
+
+            // 음성 출력 중에 읽은 위치를 업데이트
+            utterance.onboundary = (event) => {
+                if (event.charIndex !== undefined) {
+                    speakingEndIndex = index + event.charIndex;  // 음성 출력 종료 위치 업데이트
+                }
+            };
+
+            // 음성 출력 종료 시의 동작
+            utterance.onend = () => {
+                isSpeaking = false;
+                if (speakingEndIndex !== null) {
+                    currentIndex = Math.min(speakingEndIndex, characters.length - 1); // 음성 출력 종료 위치로 커서를 이동
+                    applyHighlight(currentIndex);  // 음성이 끝난 후 마지막 읽은 위치에 커서를 두기
+                }
+            };
+
+            // 음성 출력 시작
+            setTimeout(() => {
+                window.speechSynthesis.speak(utterance);
+            }, 50);  // 150ms 딜레이를 추가해 자연스럽게 음성이 출력되도록 함
+        }
+
+        // 현재 인덱스에서 줄의 시작 위치 찾기
+        function getNextLineStartIndex(currentIndex, direction) {
+            const currentElement = characters[currentIndex];
+            const currentTop = currentElement.getBoundingClientRect().top;
+
+            let newIndex = currentIndex;
+            while (newIndex >= 0 && newIndex < characters.length) {
+                newIndex += direction;
+                if (newIndex < 0 || newIndex >= characters.length) {
+                    return -1;
+                }
+                const newElement = characters[newIndex];
+                const newTop = newElement.getBoundingClientRect().top;
+
+                if (newTop !== currentTop) {
+                    // 같은 줄의 시작 부분으로 이동
+                    while (newIndex > 0 && characters[newIndex - 1].getBoundingClientRect().top === newTop) {
+                        newIndex--;
+                    }
+                    return newIndex;
+                }
+            }
+            return -1;
+        }
+
+        // 수정 모드로 전환하는 함수 (특정 위치에서 시작)
+        function enterEditMode(startIndex) {
+            isEditMode = true;
+
+            speakModeChange('입력모드');  // 입력 모드로 전환될 때 음성 출력
+
+            // 기존 다이어리 내용을 textarea로 교체
+            const textarea = document.createElement('textarea');
+            textarea.classList.add('edit-textarea');
+            textarea.style.width = '100%';
+            textarea.style.height = '400px';  // 높이 조절
+
+            // 전체 텍스트를 표시하고 커서는 현재 위치에서 시작하도록 설정
+            textarea.value = originalText;
+            contentElement.replaceWith(textarea);
+
+            textarea.focus();
+            textarea.setSelectionRange(startIndex, startIndex); // 커서를 시작 위치로 이동
+
+            // 입력 중 방향키로 이동할 때 음성 출력
+            textarea.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                    // 현재 커서 위치에서 음성 출력
+                    setTimeout(() => {
+                        let cursorPosition = textarea.selectionStart;
+                        if (cursorPosition > 0 && cursorPosition <= textarea.value.length) {
+                            speakCharacter(textarea.value[cursorPosition - 1]);
+                        }
+                    }, 50); // 약간의 지연 시간을 추가해 커서 이동 후 텍스트 확인
+                } else if (e.key === ' ') {
+                    // 스페이스바가 눌리면 바로 앞의 단어를 출력
+                    let cursorPosition = textarea.selectionStart;
+                    if (cursorPosition > 0) {
+                        const textUpToCursor = textarea.value.slice(0, cursorPosition);
+                        const words = textUpToCursor.trim().split(' ');
+                        if (words.length > 0) {
+                            const lastWord = words[words.length - 1];
+                            speakWord(lastWord);
+                        }
+                    }
+                }
+            });
+
+            // 수정 후 저장
+            textarea.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    // Ctrl + Enter로 수정 완료 -> 탐색 모드로 전환 음성 출력 후 저장
+                    speakModeChange('탐색모드', () => {
+                        saveContentAndReload(textarea.value);
+                    });
+                } else if (e.key === 'Escape') {
+                    // Esc 키로 수정 취소
+                    speakModeChange('탐색모드', () => {
+                        textarea.replaceWith(contentElement);
+                        isEditMode = false;
+
+                        // 탐색 모드 초기화 (수정 취소 후 다시 스팬 감싸기 및 첫 글자 하이라이트)
+                        contentElement = document.getElementById('diaryContent');
+                        initializeCharacters();
+                    });
+                }
+            });
+        }
+
+        // 수정된 내용을 저장하고 페이지를 새로고침하는 함수
+        function saveContentAndReload(updatedContent) {
+            fetch('/diary/update_content', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    id: diaryId, // ID를 사용하여 업데이트
+                    content: updatedContent
+                })
+            }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 수정이 성공하면 페이지 새로고침
+                        location.reload();
+                    } else {
+                        console.error('저장 실패 이유:', data.error);  // 콘솔에 저장 실패 이유 출력
+                        alert('내용을 저장하는데 실패했습니다: ' + data.error);
+                    }
+                }).catch(error => {
+                    console.error('저장 중 오류 발생:', error);
+                    alert('저장 중 오류가 발생했습니다. 다시 시도해 주세요.');
+                });
+        }
+
+        // 단어를 음성으로 출력하는 함수
+        function speakWord(word) {
+            window.speechSynthesis.cancel();
+            setTimeout(() => {
+                const utterance = new SpeechSynthesisUtterance(word);
+                utterance.lang = 'ko-KR';
+                window.speechSynthesis.speak(utterance);
+            }, 100);
+        }
+    });
+</script>
+
+</body>
+
+</html>
