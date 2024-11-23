@@ -36,7 +36,7 @@ def check_word_validity(word, history):
     # 단어 길이 검사
     if len(word) < 3:
         print(f"Word '{word}' is too short.")
-        return False, "The word must be at least 2invalidAttemptsEn letters long."
+        return False, "The word must be at least 3 letters long."
 
     # 사전에서 단어 유효성 확인
     if not is_word_in_dictionary(word):

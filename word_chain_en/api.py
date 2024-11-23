@@ -1,14 +1,17 @@
 from flask import Blueprint, request, jsonify, current_app
 from word_chain_en.logic import check_word_validity, generate_next_word
 
+
+
+
 # Blueprint 정의
 word_chain_en_api = Blueprint('word_chain_en_api', __name__)
 
 @word_chain_en_api.route('/word_chain_en/check_word', methods=['POST'])
 def check_word():
-    history_en = current_app.config.setdefault('HISTORY_EN', [])  # 서버 전역 history 가져오기
+    history = current_app.config.setdefault('HISTORY_EN', [])  # 서버 전역 history 가져오기
 
-    print(f"Server history (before validation): {history_en}")
+    print(f"Server history (before validation): {history}")
 
     try:
         data = request.json
@@ -17,15 +20,15 @@ def check_word():
             return jsonify({"error": "Word is required"}), 400
 
         # 유효성 검사: 항상 history의 마지막 단어를 기준으로 확인
-        is_valid, error_message = check_word_validity(word, history_en)
+        is_valid, error_message = check_word_validity(word, history)
         if not is_valid:
             return jsonify({"error": error_message}), 400
 
         # 유효한 단어인 경우, history에 추가
-        history_en.append(word.lower())  # 단어를 소문자로 변환하여 추가
-        print(f"Server history (after validation): {history_en}")
+        history.append(word.lower())  # 단어를 소문자로 변환하여 추가
+        print(f"Server history (after validation): {history}")
 
-        return jsonify({"message": "Valid word", "history": history_en}), 200
+        return jsonify({"message": "Valid word", "history": history}), 200
 
     except Exception as e:
         print(f"Error during word validation: {e}")
@@ -58,7 +61,7 @@ def generate_word():
 @word_chain_en_api.route('/word_chain_en/reset', methods=['POST'])
 def reset_game():
     # Flask의 current_app.config로 history 초기화
-    history_en = current_app.config.setdefault('HISTORY_EN', [])
-    history_en.clear()  # 기록 초기화
-    print('Server-side history after reset:', history_en)
+    history = current_app.config.setdefault('HISTORY_EN', [])
+    history.clear()  # 기록 초기화
+    print('Server-side history after reset:', history)
     return jsonify({"message": "Game has been reset."}), 200

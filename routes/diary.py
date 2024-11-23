@@ -77,37 +77,6 @@ def show_diary_entries():
     finally:
         connection.close()
 
-# 특정 날짜의 다이어리 내용을 HTML로 렌더링하여 반환
-# @diary_api.route('/content/<string:date>', methods=['GET'])
-# def get_diary_content(date):
-#     try:
-#         datetime.strptime(date, '%Y-%m-%d')  # 날짜 형식 검증
-#     except ValueError:
-#         return Response(
-#             json.dumps({"error": "date must be in YYYY-MM-DD format"}, ensure_ascii=False),
-#             content_type="application/json; charset=utf-8"
-#         ), 400
-
-#     connection = get_db_connection()
-#     try:
-#         with connection.cursor() as cursor:
-#             sql = "SELECT id, content FROM diary WHERE date = %s;"
-#             cursor.execute(sql, (date,))
-#             result = cursor.fetchone()
-
-#         if result:
-#             # 다이어리 내용을 바로 HTML 템플릿에 전달
-#             content = result['content']
-#             diary_id = result['id']
-#             return render_template('diary_content.html', content=content, date=date, id=diary_id)
-#         else:
-#             return Response(
-#                 json.dumps({"error": "Diary entry not found"}, ensure_ascii=False),
-#                 content_type="application/json; charset=utf-8"
-#             ), 404
-#     finally:
-#         connection.close()
-
 # 특정 ID의 다이어리 내용을 HTML로 렌더링하여 반환
 @diary_api.route('/content/<int:id>', methods=['GET'])
 def get_diary_content(id):

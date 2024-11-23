@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>끝말잇기</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .menu-button:hover,
+        .back-button:hover {
+            background-color: yellow;
+            color: black;
+        }
+
+        button#korean-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        button#english-btn {
+            background-color: #1E90FF;
+            color: white;
+        }
+
+        button#back-to-menu {
+            background-color: gray;
+            color: white;
+        }
+
+        .selected {
+            background-color: yellow !important;
+            color: black !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="language-selection">
+        <h1>언어를 선택하세요</h1>
+        <button id="korean-btn" class="menu-button" tabindex="0">한국어</button>
+        <button id="english-btn" class="menu-button" tabindex="1">영어</button>
+        <button id="back-to-menu" class="menu-button back-button" tabindex="2">뒤로가기</button>
+    </div>
+
+    <script>
+        let currentIndex = 0;
+        const menuButtons = document.querySelectorAll('.menu-button');
+        const totalMenus = menuButtons.length;
+
+        // 음성 출력 함수
+        function speakMessage(message) {
+            window.speechSynthesis.cancel(); // 기존 음성 중단
+            setTimeout(() => {
+                const utterance = new SpeechSynthesisUtterance(message);
+                utterance.lang = 'ko-KR';
+                window.speechSynthesis.speak(utterance);
+            }, 100); // 지연 시간 추가
+        }
+
+        // 초기화 함수
+        function initializeMenu() {
+            menuButtons[currentIndex].classList.add('selected');
+            speakMessage(getButtonText(menuButtons[currentIndex]));
+        }
+
+        // 버튼 텍스트 가져오기
+        function getButtonText(button) {
+            return button.textContent.trim();
+        }
+
+        // 메뉴 간 이동 함수
+        function navigateMenu(direction) {
+            // 기존 선택된 버튼 해제
+            menuButtons[currentIndex].classList.remove('selected');
+
+            // 현재 진행 중인 음성 중단
+            window.speechSynthesis.cancel();
+
+            // 인덱스 업데이트
+            if (direction === 'left') {
+                currentIndex = (currentIndex - 1 + totalMenus) % totalMenus;
+            } else if (direction === 'right') {
+                currentIndex = (currentIndex + 1) % totalMenus;
+            }
+
+            // 새로운 버튼에 선택 표시 및 음성 출력
+            const selectedButton = menuButtons[currentIndex];
+            selectedButton.classList.add('selected');
+            speakMessage(getButtonText(selectedButton));
+            selectedButton.focus();
+        }
+
+        // 키보드 이벤트 리스너
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowLeft') {
+                event.preventDefault();
+                navigateMenu('left');
+            } else if (event.key === 'ArrowRight') {
+                event.preventDefault();
+                navigateMenu('right');
+            } else if (event.key === 'Enter') {
+                // Enter 키로 버튼 클릭
+                menuButtons[currentIndex].click();
+            }
+        });
+
+        // 버튼 클릭 이벤트
+        menuButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                const buttonId = button.id;
+                if (buttonId === 'korean-btn') {
+                    window.location.href = "/word_chain_ko";
+                } else if (buttonId === 'english-btn') {
+                    window.location.href = "/word_chain_en";
+                } else if (buttonId === 'back-to-menu') {
+                    window.location.href = "https://www.google.com";
+                }
+            });
+        });
+
+        // 초기화
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeMenu();
+        });
+    </script>
+</body>
+
+</html>

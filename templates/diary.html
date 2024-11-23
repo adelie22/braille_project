@@ -18,8 +18,16 @@
 
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            /* 모서리 둥글게 적용을 위해 separate로 변경 */
+            border-spacing: 0;
             margin-top: 20px;
+            margin-bottom: 20px;
+            /* 표 간 간격 추가 */
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            /* 테이블 모서리 둥글게 처리 */
+            overflow: hidden;
         }
 
         th,
@@ -31,20 +39,54 @@
 
         th.date-column,
         td.date-column {
-            width: 150px; /* 원하는 너비로 설정하세요 */
+            width: 150px;
+            /* 원하는 너비로 설정하세요 */
+        }
+
+        .content {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+            /* 필요에 따라 조정 */
         }
 
         th {
             background-color: #f4f4f4;
             font-size: 18px;
+            border-bottom: 2px solid #ddd;
         }
 
         td {
             font-size: 16px;
+            vertical-align: top;
+        }
+
+        .date-row {
+            font-weight: bold;
+            background-color: #f9f9f9;
+            color: #333;
+            border-bottom: none;
+            transition: background-color 0.3s ease;
+            /* 배경색 전환 효과 추가 */
+        }
+
+        .content-row {
+            background-color: #fff;
+            color: #555;
+            /* transition: background-color 0.3s ease; 배경색 전환 효과 제거 */
         }
 
         .highlight {
             background-color: rgb(255, 255, 107);
+            transition: background-color 0.3s ease;
+        }
+
+        /* 버튼 하이라이트에 대한 특정성 높이기 */
+        #action-buttons button.highlight {
+            background-color: rgb(255, 255, 107);
+            color: white;
+            /* 텍스트 색상도 변경하여 가독성 향상 */
         }
 
         #popup,
@@ -58,6 +100,8 @@
             border: 2px solid #ddd;
             padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            /* 팝업 모서리 둥글게 처리 */
         }
 
         #popup button,
@@ -65,21 +109,45 @@
             margin: 10px;
             padding: 10px 20px;
             font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #f4f4f4;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            /* 배경색 전환 효과 추가 */
         }
 
         .popup-button {
             border: 2px solid #000000;
             background-color: #f4f4f4;
+            transition: background-color 0.3s ease;
         }
 
         .popup-button.highlight {
             background-color: rgb(255, 255, 107);
             color: white;
+            transition: background-color 0.3s ease;
         }
 
         #action-buttons {
             margin-top: 20px;
             text-align: center;
+        }
+
+        #action-buttons button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #f4f4f4;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            /* 배경색 전환 효과 추가 */
+        }
+
+        #action-buttons button:hover {
+            background-color: rgb(200, 200, 200);
         }
 
         #create-entry {
@@ -94,6 +162,9 @@
             padding: 10px;
             font-size: 16px;
             border: 2px solid #000000;
+            border-radius: 5px;
+            transition: border-color 0.3s ease;
+            /* 테두리 색상 전환 효과 추가 */
         }
     </style>
 </head>
@@ -104,30 +175,27 @@
     <div id="action-buttons">
         <button id="create-button" tabindex="0">작성</button>
         <button id="back-button" tabindex="0" aria-label="뒤로가기 버튼">뒤로가기</button>
-
     </div>
 
     <div id="create-entry">
         <textarea id="new-content" placeholder="새로운 다이어리를 작성하세요..."></textarea>
     </div>
 
-    <table id="diary-table">
-        <thead>
-            <tr>
-                <th class="date-column">날짜</th>
-                <th>내용</th>
-            </tr>
-        </thead>
+    <!-- 여러 개의 표로 변경 -->
+    {% for entry in entries %}
+    <table class="diary-table">
         <tbody>
-            {% for entry in entries %}
-            <tr class="diary-entry" tabindex="0" data-id="{{ entry.id }}" data-date="{{ entry.date }}">
-                <td class="date-column">{{ entry.date }}</td>
-                <td class="content">{{ entry.content[:50] }}...</td>
+            <!-- 날짜 행 -->
+            <tr class="diary-entry date-row" tabindex="0" data-id="{{ entry.id }}" data-date="{{ entry.date }}">
+                <td class="date-column" colspan="2">{{ entry.date }}</td>
             </tr>
-            {% endfor %}
+            <!-- 내용 행 -->
+            <tr class="diary-entry content-row" data-id="{{ entry.id }}">
+                <td colspan="2">{{ entry.content[:300] }}{% if entry.content|length > 20 %}...{% endif %}</td>
+            </tr>
         </tbody>
     </table>
-
+    {% endfor %}
 
     <div id="popup">
         <p>다이어리를 삭제하겠습니까?</p>
@@ -140,7 +208,6 @@
         <button class="popup-button" id="confirm-save-button">저장</button>
         <button class="popup-button" id="cancel-save-button">취소</button>
     </div>
-
     <!-- 스크립트 시작 -->
 <script>
     let diaryEntries;
@@ -158,32 +225,31 @@
 
 
     // navigableItems와 diaryEntries 업데이트 함수
-    function updateNavigableItems() {
-            diaryEntries = document.querySelectorAll('.diary-entry');
-            navigableItems = [createButton, backButton, ...Array.from(diaryEntries)];
-        }
+        function updateNavigableItems() {
+                diaryEntries = document.querySelectorAll('.diary-entry.date-row'); // date-row만 선택
+                navigableItems = [createButton, backButton, ...Array.from(diaryEntries)];
+            }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        updateNavigableItems();
+      document.addEventListener('DOMContentLoaded', () => {
+            updateNavigableItems();
 
-      // 첫 번째 항목에 하이라이트 적용 및 음성 출력
-        navigableItems[currentIndex].classList.add('highlight');
-        if (navigableItems[currentIndex] === createButton) {
-            speakMessage('작성 버튼');
-        } else if (navigableItems[currentIndex] === backButton) {
-            speakMessage('뒤로가기 버튼');
-        } else {
-            speakDate(navigableItems[currentIndex]);
-        }
+            // 첫 번째 항목에 하이라이트 적용 및 음성 출력
+            navigableItems[currentIndex].classList.add('highlight');
+            if (navigableItems[currentIndex] === createButton) {
+                speakMessage('작성 버튼');
+            } else if (navigableItems[currentIndex] === backButton) {
+                speakMessage('뒤로가기 버튼');
+            } else {
+                speakDate(navigableItems[currentIndex]);
+            }
 
-        // 방향키로 항목 이동 이벤트 등록
-        document.addEventListener('keydown', handleNavigation);
-    });
+            // 방향키로 항목 이동 이벤트 등록
+            document.addEventListener('keydown', handleNavigation);
+        });
 
-    // 작성 버튼 클릭 핸들러
+     // 작성 버튼 클릭 핸들러
         const newContentField = document.getElementById('new-content');
         createButton.addEventListener('click', () => {
-            // e.preventDefault();
             speakMessage('새로운 다이어리를 작성하세요.');
             const createEntry = document.getElementById('create-entry');
             createEntry.style.display = 'block';
@@ -196,8 +262,8 @@
             newContentField.addEventListener('keydown', handleNewContentFieldKeydown);
         });
 
-  // 입력 중 음성 출력 핸들러
-    function handleNewContentFieldKeydown(e) {
+    // 입력 중 음성 출력 핸들러
+        function handleNewContentFieldKeydown(e) {
             if (e.key === ' ') {
                 const words = newContentField.value.trim().split(' ');
                 const lastWord = words[words.length - 1];
@@ -208,36 +274,35 @@
             }
         }
 
-        newContentField.addEventListener('keydown', handleNewContentFieldKeydown);
+         newContentField.addEventListener('keydown', handleNewContentFieldKeydown);
 
-
-    function handleInputFieldEscape(e) {
-         if (e.key === 'Escape' || (e.key === 'Backspace' && e.ctrlKey)) {
-            // 입력 필드를 닫고 페이지를 새로고침하여 기존 기능을 복원
-            window.location.reload();
-        }
-    }
-
-      // **커서 이동 시 글자 음성 출력 핸들러 추가**
-       function handleCursorMovement(e) {
-            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Home' || e.key === 'End') {
-                setTimeout(() => {
-                    let cursorPosition = newContentField.selectionStart;
-                    let text = newContentField.value;
-                    if (cursorPosition < text.length) {
-                        let character = text[cursorPosition];
-                        speakMessage(character);
-                    } else if (cursorPosition > 0 && cursorPosition === text.length) {
-                        // 커서가 텍스트의 마지막에 있을 때 이전 글자를 읽어줌
-                        let character = text[cursorPosition - 1];
-                        speakMessage(character);
-                    }
-                }, 0); // 약간의 지연 시간을 두어 커서 위치 업데이트 후 실행
+            function handleInputFieldEscape(e) {
+                if (e.key === 'Escape' || (e.key === 'Backspace' && e.ctrlKey)) {
+                    // 입력 필드를 닫고 페이지를 새로고침하여 기존 기능을 복원
+                    window.location.reload();
+                }
             }
-        }
 
-        // 저장 팝업 열기 함수
-       function openSavePopup() {
+
+        // 커서 이동 시 글자 음성 출력 핸들러 추가
+            function handleCursorMovement(e) {
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Home' || e.key === 'End') {
+                    setTimeout(() => {
+                        let cursorPosition = newContentField.selectionStart;
+                        let text = newContentField.value;
+                        if (cursorPosition < text.length) {
+                            let character = text[cursorPosition];
+                            speakMessage(character);
+                        } else if (cursorPosition > 0 && cursorPosition === text.length) {
+                            // 커서가 텍스트의 마지막에 있을 때 이전 글자를 읽어줌
+                            let character = text[cursorPosition - 1];
+                            speakMessage(character);
+                        }
+                    }, 100); // 약간의 지연 시간을 두어 커서 위치 업데이트 후 실행
+                }
+            }
+       // 저장 팝업 열기 함수
+        function openSavePopup() {
             window.speechSynthesis.cancel();
             speakMessage('다이어리를 저장하시겠습니까?');
             document.getElementById('save-popup').style.display = 'block';
@@ -259,36 +324,37 @@
         }
 
 
-        // 저장 팝업 내 키 입력 핸들러 함수
-        function handleSavePopupNavigation(e) {
-            e.preventDefault();
-            const savePopupButtons = document.querySelectorAll('#save-popup .popup-button');
-            let savePopupIndex = Array.from(savePopupButtons).findIndex(button => button.classList.contains('highlight'));
+         // 저장 팝업 내 키 입력 핸들러 함수
+            function handleSavePopupNavigation(e) {
+                e.preventDefault();
+                const savePopupButtons = document.querySelectorAll('#save-popup .popup-button');
+                let savePopupIndex = Array.from(savePopupButtons).findIndex(button => button.classList.contains('highlight'));
 
-            if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-                savePopupButtons[savePopupIndex].classList.remove('highlight');
-                if (e.key === 'ArrowRight') {
-                    savePopupIndex = (savePopupIndex + 1) % savePopupButtons.length;
-                } else if (e.key === 'ArrowLeft') {
-                    savePopupIndex = (savePopupIndex - 1 + savePopupButtons.length) % savePopupButtons.length;
-                }
-                savePopupButtons[savePopupIndex].classList.add('highlight');
-                speakMessage(savePopupButtons[savePopupIndex].innerText);
-            } else if (e.key === 'Enter') {
-                if (savePopupButtons[savePopupIndex].id === 'confirm-save-button') {
-                    saveDiary();
-                } else {
+                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                    savePopupButtons[savePopupIndex].classList.remove('highlight');
+                    if (e.key === 'ArrowRight') {
+                        savePopupIndex = (savePopupIndex + 1) % savePopupButtons.length;
+                    } else if (e.key === 'ArrowLeft') {
+                        savePopupIndex = (savePopupIndex - 1 + savePopupButtons.length) % savePopupButtons.length;
+                    }
+                    savePopupButtons[savePopupIndex].classList.add('highlight');
+                    speakMessage(savePopupButtons[savePopupIndex].innerText);
+                } else if (e.key === 'Enter') {
+                    if (savePopupButtons[savePopupIndex].id === 'confirm-save-button') {
+                        saveDiary();
+                    } else {
+                        closeSavePopup();
+                    }
+                    document.removeEventListener('keydown', handleSavePopupNavigation);
+                } else if (e.key === 'Escape') {
                     closeSavePopup();
+                    document.removeEventListener('keydown', handleSavePopupNavigation);
                 }
-                document.removeEventListener('keydown', handleSavePopupNavigation);
-            } else if (e.key === 'Escape') {
-                closeSavePopup();
-                document.removeEventListener('keydown', handleSavePopupNavigation);
             }
-        }
 
-        // 저장 팝업 닫기 함수
-     function closeSavePopup() {
+
+       // 저장 팝업 닫기 함수
+        function closeSavePopup() {
             window.speechSynthesis.cancel();
             document.getElementById('save-popup').style.display = 'none';
             let savePopupButtons = document.querySelectorAll('#save-popup .popup-button');
@@ -299,6 +365,7 @@
             newContentField.addEventListener('keydown', handleCursorMovement);
             newContentField.addEventListener('keydown', handleNewContentFieldKeydown);
         }
+
 
         function saveDiary() {
             const currentDate = new Date().toISOString().split('T')[0];
@@ -329,59 +396,48 @@
             }
         }
 
-        // 첫 번째 항목에 하이라이트 적용 및 음성 출력
-            navigableItems[currentIndex].classList.add('highlight');
-            if (navigableItems[currentIndex] === createButton) {
-                speakMessage('작성 버튼');
-            } else if (navigableItems[currentIndex] === backButton) {
-                speakMessage('뒤로가기 버튼');
-            } else {
-                speakDate(navigableItems[currentIndex]);
-            }
 
-        // 방향키로 항목 이동 이벤트 등록
-        document.addEventListener('keydown', handleNavigation);
+          function handleNavigation(e) {
+                if (isCreating) return;
 
-        function handleNavigation(e) {
-            if (isCreating) return;
+                // 기본 동작 방지
+                e.preventDefault();
 
-            // 기본 동작 방지
-            e.preventDefault();
+                // 현재 하이라이트 제거
+                navigableItems[currentIndex].classList.remove('highlight');
 
-            // 현재 하이라이트 제거
-            navigableItems[currentIndex].classList.remove('highlight');
-
-            if (e.key === 'ArrowDown') {
-                currentIndex = (currentIndex + 1) % navigableItems.length;
-            } else if (e.key === 'ArrowUp') {
-                currentIndex = (currentIndex - 1 + navigableItems.length) % navigableItems.length;
-            } else if (e.key === 'Enter') {
-                if (navigableItems[currentIndex] === createButton) {
-                    createButton.click();
-                } else if (navigableItems[currentIndex] === backButton) {
-                    backButton.click();
-                } else {
-                    const selectedItem = navigableItems[currentIndex];
-                    const selectedId = selectedItem.getAttribute('data-id');
-                    window.location.href = `/diary/content/${selectedId}`;
-                }
-                return;
+                if (e.key === 'ArrowDown') {
+                    currentIndex = (currentIndex + 1) % navigableItems.length;
+                } else if (e.key === 'ArrowUp') {
+                    currentIndex = (currentIndex - 1 + navigableItems.length) % navigableItems.length;
+                } else if (e.key === 'Enter') {
+                    if (navigableItems[currentIndex] === createButton) {
+                        createButton.click();
+                    } else if (navigableItems[currentIndex] === backButton) {
+                        backButton.click();
+                    } else {
+                        const selectedItem = navigableItems[currentIndex];
+                        const selectedId = selectedItem.getAttribute('data-id');
+                        window.location.href = `/diary/content/${selectedId}`;
+                    }
+                    return;
                 } else if (e.key === 'Backspace' && navigableItems[currentIndex] !== createButton && e.ctrlKey) {
                     openPopup();
                     return;
                 }
 
-                navigableItems[currentIndex].classList.add('highlight');
-                navigableItems[currentIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                 // 새 항목 하이라이트 추가
+              navigableItems[currentIndex].classList.add('highlight');
+              navigableItems[currentIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-               if (navigableItems[currentIndex] === createButton) {
-                speakMessage('작성 버튼');
-                } else if (navigableItems[currentIndex] === backButton) {
-                    speakMessage('뒤로가기 버튼');
-                } else {
-                    speakDate(navigableItems[currentIndex]);
-                }
-            }
+              if (navigableItems[currentIndex] === createButton) {
+                  speakMessage('작성 버튼');
+              } else if (navigableItems[currentIndex] === backButton) {
+                  speakMessage('뒤로가기 버튼');
+              } else {
+                  speakDate(navigableItems[currentIndex]);
+              }
+          }
 
         // 삭제 팝업 열기 함수
         function openPopup() {
@@ -460,8 +516,12 @@
                         const deletedItemIndex = navigableItems.findIndex(item => item.dataset && item.dataset.id == id);
                         if (deletedItemIndex !== -1) {
                             const deletedElement = navigableItems[deletedItemIndex];
-                            if (deletedElement && deletedElement.parentNode) {
-                                deletedElement.parentNode.removeChild(deletedElement);
+                            if (deletedElement) {
+                                // 전체 테이블을 찾아서 삭제
+                                const tableElement = deletedElement.closest('table');
+                                if (tableElement && tableElement.parentNode) {
+                                    tableElement.parentNode.removeChild(tableElement);
+                                }
                             }
 
                             // navigableItems 배열에서 제거
@@ -511,12 +571,12 @@
                     alert('삭제 중 오류가 발생했습니다. 다시 시도해 주세요.');
                     closePopup();
                 });
-            }
+        }
 
 
 
-        // 날짜를 음성으로 출력하는 함수
-       function speakDate(element) {
+       // 날짜를 음성으로 출력하는 함수
+     function speakDate(element) {
             window.speechSynthesis.cancel();
             const dateText = element.querySelector('.date-column').innerText;
             const [year, month, day] = dateText.split('-');

@@ -13,10 +13,6 @@ PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 if PROJECT_DIR not in sys.path:
     sys.path.append(PROJECT_DIR)
 
-# 전역 변수 선언
-history_ko = []  # 한국어 끝말잇기 기록
-history_en = []  # 영어 끝말잇기 기록
-
 
 
 
@@ -41,26 +37,21 @@ def not_found_error(error):
 def internal_error(error):
     return jsonify({"error": "Internal server error"}), 500
 
-# Route for rendering the HTML page
-@app.route('/word_chain')
-def word_chain():
-    return render_template('word_chain.html')  # Render templates/word_chain.html
+# Route for rendering the menu HTML page
+@app.route('/')
+@app.route('/word_chain_menu')
+def menu():
+    return render_template('word_chain_menu.html')  # Render templates/menu.html
 
+# Route for rendering the Korean word chain game page
+@app.route('/word_chain_ko')
+def word_chain_ko():
+    return render_template('word_chain_ko.html')  # Render templates/word_chain_ko.html
 
-# 🟩 초기화 엔드포인트 추가 (추가)
-@app.route('/word_chain/reset', methods=['POST'])
-def reset_word_chain_ko():
-    """초기화: 한국어 끝말잇기 전역 상태"""
-    global history_ko
-    history_ko = []  # 한국어 전역 기록 초기화
-    return jsonify({"message": "Korean Word Chain has been reset", "history": history_ko})
-
-@app.route('/word_chain_en/reset', methods=['POST'])
-def reset_word_chain_en():
-    """초기화: 영어 끝말잇기 전역 상태"""
-    global history_en
-    history_en = []  # 영어 전역 기록 초기화
-    return jsonify({"message": "English Word Chain has been reset", "history": history_en})
+# Route for rendering the English word chain game page
+@app.route('/word_chain_en')
+def word_chain_en():
+    return render_template('word_chain_en.html')  # Render templates/word_chain_en.html
 
 
 # Register other existing blueprints
@@ -78,12 +69,3 @@ print(app.blueprints)
 if __name__ == '__main__':
     # Run the app in debug mode
     app.run(debug=True, port=5000)
-
-
-
-
-
-#아래는 각 api를 성공적으로 호출하는지 브라우저에서 확인하는 코드
-#http://127.0.0.1:5000/en_grade2/fetch_random_word_grade2
-#http://127.0.0.1:5000/ko_grade1/fetch_random_word_grade1
-# http://127.0.0.1:5000/word_chain (wword chain 주소)
