@@ -53,7 +53,8 @@ def fetch_nouns_from_api(starting_char, num_results=100):
 
 # 테스트 실행
 if __name__ == "__main__":
-    starting_char = "아아아"  # 시작 글자를 지정
+    starting_char = "가나"  
+# 여기 임의의 문자를 넣고 사전에서 starting_char을 포함하는 단어를 가져와서 전처리 후 해당 글자로 시작하는 단어를 불러오는지 확인 가능
     nouns = fetch_nouns_from_api(starting_char)  # 결과를 리스트로 저장
 
     if nouns:  # 리스트가 비어있지 않을 때

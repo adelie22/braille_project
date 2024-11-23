@@ -1,13 +1,14 @@
 from flask import Flask, Blueprint, Response, request, jsonify, render_template
-from db import get_db_connection  # DB 연결 함수
-from datetime import datetime
+from db import get_db_connection 
+from datetime import datetime # 다이어리 작성 시 자동으로 현재 날짜를 입력하기 위해 호출한 모듈
 import json
 
 # Blueprint 생성
-diary_api = Blueprint('diary', __name__)  # 고유한 이름 사용
+diary_api = Blueprint('diary', __name__)
 
 
-@diary_api.route('/delete/<id>', methods=['POST'])
+# Diary content 삭제 시 호출
+@diary_api.route('/delete/<id>', methods=['POST']) 
 def delete_diary(id):
     try:
         # 데이터베이스 연결
@@ -36,6 +37,7 @@ def delete_diary(id):
         conn.close()
 
 
+# Diary content 새로 작성 시 호출
 @diary_api.route('/create', methods=['POST'])
 def create_diary():
     data = request.get_json()
@@ -103,7 +105,7 @@ def get_diary_content(id):
 
 
 
-# 다이어리 내용을 문자 단위로 가져오는 API
+# 다이어리 내용을 문자 단위로 가져오는 API(char 단위로 음성출력 해주기 위한 함수)
 @diary_api.route('/content_from_char', methods=['GET'])
 def get_content_from_char():
     date = request.args.get('date')  # 다이어리 날짜
@@ -198,19 +200,3 @@ def show_diary_page():
 @diary_api.route('/index', methods=['GET'])
 def show_diary_page_detail():
     return render_template('index.html')  # templates/index.html 렌더링
-
-
-# diary.py 파일 최상단에 추가하세요
-if __name__ == "__main__":
-    # 맞춤법 검사기 테스트 코드
-    test_content = "친구들과 함께 영화관에 갔다. 재밌는 시간을 보냈다."
-    try:
-        checked_result = spell_checker.check(test_content)
-        # 검사 결과를 딕셔너리로 출력하여 확인
-        print("Checked Result (Raw):", checked_result.as_dict())  # 응답 데이터를 확인
-        corrected_text = checked_result.checked
-        print("Corrected Text:", corrected_text)
-    except KeyError as e:
-        print(f"KeyError: {e}")  # KeyError 발생 시 오류 메시지 출력
-    except Exception as e:
-        print(f"Spell check error: {e}")  # 다른 모든 오류 출력

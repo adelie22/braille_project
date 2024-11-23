@@ -1,9 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app
 from word_chain_en.logic import check_word_validity, generate_next_word
 
-
-
-
 # Blueprint 정의
 word_chain_en_api = Blueprint('word_chain_en_api', __name__)
 

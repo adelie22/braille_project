@@ -1,1 +1,0 @@
-register_blueprints(app)

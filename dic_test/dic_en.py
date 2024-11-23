@@ -1,7 +1,6 @@
 import requests
 
-# Merriam-Webster API 키 및 URL 설정
-API_KEY = "fcd61f5d-0858-4191-a144-0f03567277fe"  # Merriam-Webster API 키를 여기에 입력하세요
+API_KEY = "fcd61f5d-0858-4191-a144-0f03567277fe"  
 API_URL = "https://www.dictionaryapi.com/api/v3/references/sd4/json"
 
 def check_word_in_dictionary(word):
@@ -11,7 +10,7 @@ def check_word_in_dictionary(word):
     :return: 단어가 사전에 존재하면 True, 아니면 False
     """
     params = {
-        "key": API_KEY  # API 키
+        "key": API_KEY 
     }
     try:
         # API 호출
@@ -36,7 +35,8 @@ def check_word_in_dictionary(word):
         return False
     
 if __name__ == "__main__":
-    word_to_check = "awesome"  # 확인하려는 단어
+    word_to_check = "awesome"
+# 여기 임의의 문자를 넣고 사전에 word_to_check이라는 단어가 존재하는지 확인 가능 
     exists = check_word_in_dictionary(word_to_check)
     print(f"Does the word '{word_to_check}' exist? {exists}")
 
