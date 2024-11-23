@@ -1,12 +1,10 @@
-<!-- templates/word_chain_ko.html -->
-
 <!DOCTYPE html>
 <html lang="ko">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>한국어 끝말잇기 게임</title>
+    <title>한국어 끝말잇기</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -33,13 +31,13 @@
             cursor: pointer;
             border: none;
             border-radius: 5px;
-            background-color: #008CBA;
+            background-color: #4CAF50;
             color: white;
             transition: background-color 0.3s;
         }
 
         button:hover {
-            background-color: #005f6a;
+            background-color: #45a049;
         }
 
         .selected {
@@ -71,6 +69,18 @@
 
         #history-ko li:nth-child(even) {
             background-color: #e9ecef;
+        }
+
+        /* 추가된 요소 스타일 */
+        #attempts-ko,
+        #exchange-ko {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+
+        #exchange-ko {
+            font-weight: bold;
         }
 
         /* 팝업 창 스타일 */
@@ -115,12 +125,16 @@
 </head>
 
 <body>
-    <h1>한국어 끝말잇기 게임</h1>
-    <input type="text" id="user-word-ko" placeholder="단어 입력" tabindex="0" aria-label="단어 입력창">
-    <!-- '제출' 버튼 제거 -->
-    <button id="back-to-menu-ko" tabindex="1" aria-label="뒤로가기 버튼">뒤로가기</button>
-    <p id="result-ko"></p>
+    <h1>한국어 끝말잇기</h1>
+    <input type="text" id="user-word-ko" placeholder="단어를 입력하세요" tabindex="0" aria-label="단어 입력창">
+    <button id="back-to-menu-ko" tabindex="1" aria-label="메뉴로 돌아가기 버튼">메뉴로 돌아가기</button>
+    <p id="result-ko" aria-live="polite"></p>
     <ul id="history-ko"></ul>
+
+    <!-- 추가된 요소: 틀린 횟수, 주고받은 횟수, 교환 내용 -->
+    <p id="attempts-ko">틀린 시도: 0 | 총 교환 횟수: 0</p>
+    <p id="exchange-ko" style="font-size: 3rem; transition: transform 0.3s ease-out, opacity 0.3s ease-out;"></p>
+
 
     <!-- 팝업 창 (단어 제출 오류 시) -->
     <div id="popup-ko">
@@ -129,7 +143,6 @@
         <button class="popup-button" id="cancel-button-ko" tabindex="3">취소</button>
     </div>
 
-    <!-- 추가할 스크립트 파일 -->
     <script src="{{ url_for('static', filename='js/word_chain_ko.js') }}"></script>
 </body>
 

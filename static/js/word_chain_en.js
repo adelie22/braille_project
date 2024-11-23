@@ -164,6 +164,15 @@ document.addEventListener('DOMContentLoaded', function () {
     // 사용자가 단어를 제출했을 때
     function submitWord(word) {
         // 단어 길이 확인 (3글자 미만이면 틀린 횟수 증가하지 않음)
+        const isEnglish = /^[a-zA-Z]+$/.test(word);
+        if (!isEnglish) {
+            speakMessage('Please enter a word in English.');
+            document.getElementById('user-word-en').value = ''; // 입력창 초기화
+            document.getElementById('user-word-en').focus(); // 입력창에 다시 포커스
+            return; // 더 이상 처리하지 않음
+        }
+
+        // 단어 길이 확인 (3글자 미만이면 틀린 횟수 증가하지 않음)
         if (word.length < 3) {
             speakMessage('The word must be at least 3 letters long.');
             document.getElementById('user-word-en').value = ''; // 입력창 초기화
@@ -235,6 +244,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 document.getElementById('user-word-en').focus();
             });
     }
+
 
 
 
@@ -462,6 +472,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 initializeMenu(); // 초기화 시도
             });
     }
+
+    
 
     // 게임 초기화 호출
     initializeGame();
