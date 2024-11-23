@@ -3,6 +3,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     let navigableItems;
     let currentIndex = 0;
+    let isComposing = false;
 
     // 게임 상태 변수
     let incorrectAttempts = 0;
@@ -72,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 exchangeElement.innerHTML = '';
             }
 
-            // 게임스러운 애니메이션 추가
+            // 단어 애니메이션
             exchangeElement.style.transform = 'scale(1.2)';
             exchangeElement.style.opacity = 1; // 새로운 단어 보여주기
             setTimeout(() => {
@@ -125,8 +126,7 @@ document.addEventListener('DOMContentLoaded', function () {
         navigableItems[currentIndex].focus();
         speakMessage(getItemLabel(navigableItems[currentIndex]));
     }
-
-    // 키보드 이벤트 리스너
+    
     document.addEventListener('keydown', (event) => {
         if (document.getElementById('popup-ko').style.display === 'block') {
             // 팝업이 열려있을 때는 외부 키보드 이벤트 무시
@@ -149,17 +149,36 @@ document.addEventListener('DOMContentLoaded', function () {
             if (activeElement.id === 'back-to-menu-ko') {
                 // 뒤로가기 버튼 클릭 동작
                 window.location.href = "/word_chain_menu"; // 실제 메뉴 URL로 변경하세요
-            } else if (activeElement.tagName === 'INPUT') {
-                // 입력창에서 Enter 키 누르면 단어 제출
-                const word = document.getElementById('user-word-ko').value.trim();
-                if (word) {
-                    submitWord(word);
-                } else {
-                    speakMessage('단어를 입력하세요.');
-                }
             }
         }
     });
+
+    //// 한국어는 조합 중 제출 시 엔터 두 번 입력되는 이벤트 발생하므로 영어와 다르게 입력코드를 아래와 같이 작성 ////
+    // 조합 시작 이벤트
+    document.getElementById('user-word-ko').addEventListener('compositionstart', () => {
+        isComposing = true; // 조합 중 상태로 설정
+    });
+
+    // 조합 종료 이벤트
+    document.getElementById('user-word-ko').addEventListener('compositionend', () => {
+        isComposing = false; // 조합 완료 상태로 설정
+    });
+
+    // 키다운 이벤트
+    document.getElementById('user-word-ko').addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && !isComposing) { // 조합 중이 아닐 때만 처리
+            const word = event.target.value.trim(); // 현재 입력된 단어 가져오기
+            if (word) {
+                submitWord(word); // 단어 제출 함수 호출
+            } else {
+                speakMessage('단어를 입력하세요.');
+            }
+            event.preventDefault(); // 기본 Enter 동작 방지
+        }
+    });
+
+
+
 
     // 사용자가 단어를 제출했을 때
     function submitWord(word) {
@@ -250,29 +269,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-    // 유효하지 않은 단어 처리 함수
-    function handleInvalidWord(errorMessage, word) {
-        console.log(`Invalid word: ${errorMessage}`);
-        speakMessage(errorMessage);
-        incorrectAttempts += 1;
-        updateAttemptsDisplay();
+    // // 유효하지 않은 단어 처리 함수
+    // function handleInvalidWord(errorMessage, word) {
+    //     console.log(`Invalid word: ${errorMessage}`);
+    //     speakMessage(errorMessage);
+    //     incorrectAttempts += 1;
+    //     updateAttemptsDisplay();
 
-        // 1번 기능: 3글자 미만 입력 시
-        if (errorMessage.includes('at least')) {
-            // 이미 음성으로 안내되었으므로 추가 동작 필요 없음
-        }
+    //     // 1번 기능: 3글자 미만 입력 시
+    //     if (errorMessage.includes('at least')) {
+    //         // 이미 음성으로 안내되었으므로 추가 동작 필요 없음
+    //     }
 
-        // 3번 기능: 올바르지 않은 시작 글자
-        // 4번 기능: 중복 단어
-        // 이 두 기능은 errorMessage에 따라 분기 처리됨
+    //     // 3번 기능: 올바르지 않은 시작 글자
+    //     // 4번 기능: 중복 단어
+    //     // 이 두 기능은 errorMessage에 따라 분기 처리됨
 
-        // 6번 기능: 3번 틀리면 게임 종료
-        if (incorrectAttempts >= 3) {
-            gameOver = true;
-            speakMessage('게임 종료. 다시하려면 재시도, 종료하려면 취소 버튼을 누르세요');
-            openGameOverPopup();
-        }
-    }
+    //     // 6번 기능: 3번 틀리면 게임 종료
+    //     if (incorrectAttempts >= 3) {
+    //         gameOver = true;
+    //         speakMessage('게임 종료. 다시하려면 재시도, 종료하려면 취소 버튼을 누르세요');
+    //         openGameOverPopup();
+    //     }
+    // }
 
     // 유효한 단어 처리 함수
     function handleValidWord(userWord, history) {

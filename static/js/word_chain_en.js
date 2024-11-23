@@ -36,6 +36,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 100); // 지연 시간 추가
     }
 
+
+
     // 각 항목의 라벨 가져오기
     function getItemLabel(item) {
         if (item.tagName === 'INPUT') {
@@ -248,29 +250,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-    // 유효하지 않은 단어 처리 함수
-    function handleInvalidWord(errorMessage, word) {
-        console.log(`Invalid word: ${errorMessage}`);
-        speakMessage(errorMessage);
-        incorrectAttempts += 1;
-        updateAttemptsDisplay();
+    // // 유효하지 않은 단어 처리 함수
+    // function handleInvalidWord(errorMessage, word) {
+    //     console.log(`Invalid word: ${errorMessage}`);
+    //     speakMessage(errorMessage);
+    //     incorrectAttempts += 1;
+    //     updateAttemptsDisplay();
  
-        // 1번 기능: 3글자 미만 입력 시
-        if (errorMessage.includes('at least')) {
-            // 이미 음성으로 안내되었으므로 추가 동작 필요 없음
-        }
+    //     // 1번 기능: 3글자 미만 입력 시
+    //     if (errorMessage.includes('at least')) {
+    //         // 이미 음성으로 안내되었으므로 추가 동작 필요 없음
+    //     }
 
-        // 3번 기능: 올바르지 않은 시작 글자
-        // 4번 기능: 중복 단어
-        // 이 두 기능은 errorMessage에 따라 분기 처리됨
+    //     // 3번 기능: 올바르지 않은 시작 글자
+    //     // 4번 기능: 중복 단어
+    //     // 이 두 기능은 errorMessage에 따라 분기 처리됨
 
-        // 6번 기능: 3번 틀리면 게임 종료
-        if (incorrectAttempts >= 3) {
-            gameOver = true;
-            speakMessage('Game over. Press Enter to continue or Escape to quit.');
-            openGameOverPopup();
-        }
-    }
+    //     // 6번 기능: 3번 틀리면 게임 종료
+    //     if (incorrectAttempts >= 3) {
+    //         gameOver = true;
+    //         speakMessage('Game over. Press Enter to continue or Escape to quit.');
+    //         openGameOverPopup();
+    //     }
+    // }
 
     // 유효한 단어 처리 함수
     function handleValidWord(userWord, history) {
